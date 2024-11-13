@@ -4,5 +4,7 @@
   "displayName": "ProxFramework",
   "description": "A light weight game framework.",
   "unity": "2022.3",
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.9"
+  }
 }
