@@ -1,0 +1,18 @@
+{
+    "name": "prox-framework.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:4d1926c9df5b052469a1c63448b7609a",
+        "GUID:e34a5702dd353724aa315fb8011f08c3",
+        "GUID:07fb6d2c0c295534a9194b60e8b1074c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,17 @@
+{
+    "name": "prox-framework",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a388423cfc9930543940ba90c0130753",
+        "GUID:e34a5702dd353724aa315fb8011f08c3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
