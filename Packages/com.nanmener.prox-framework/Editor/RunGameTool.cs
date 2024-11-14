@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using YooAsset.Editor;
 
-namespace ProxFramework.Utils
+namespace ProxFramework.Editor
 {
     public class RunGameTool
     {

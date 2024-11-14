@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YooAsset.Editor;
 
-namespace ProxFramework.UI.Editor
+namespace ProxFramework.Editor
 {
     public class UIBindGenerateEditor : OdinEditorWindow
     {
