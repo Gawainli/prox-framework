@@ -3,7 +3,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace ProxFramework.UI.Editor
+namespace ProxFramework.Editor
 {
     [Serializable]
     [CreateAssetMenu(fileName = "UIBindGenerateSetting", menuName = "Prox/UIBindGenerateSetting")]

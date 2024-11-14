@@ -1,9 +1,9 @@
 ﻿#if UNITY_EDITOR
-
+using ProxFramework.UI;
 using UnityEditor;
 using UnityEditor.UI;
 
-namespace ProxFramework.UI.Editor
+namespace ProxFramework.Editor
 {
     [CustomEditor(typeof(ButtonEx), true)]
     public class ButtonExEditor : ButtonEditor

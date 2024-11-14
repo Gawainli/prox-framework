@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -58,8 +60,9 @@ namespace ProxFramework.Editor
             int totalMinutes = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
             return DateTime.Now.ToString("yyyy-MM-dd") + "-" + totalMinutes;
         }
-        
-#region HCLR
+
+        #region HCLR
+
 #if HCLR
         [MenuItem("Build Tool/Copy All AOT and HotUpdate DLLs")]
         public static void CopyAllAOTAndHotUpdate()
@@ -118,7 +121,8 @@ namespace ProxFramework.Editor
             }
         }
 #endif
-#endregion
 
+        #endregion
     }
 }
+#endif
