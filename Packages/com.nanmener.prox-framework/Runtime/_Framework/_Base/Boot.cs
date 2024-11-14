@@ -47,7 +47,11 @@ namespace ProxFramework.Base
                 poolingRoot = gameObject
             });
             ModuleCore.CreateModule<NetworkModule>();
-            ModuleCore.CreateModule<UIModule>(uiRoot);
+
+            if (uiRoot != null)
+            {
+                ModuleCore.CreateModule<UIModule>(uiRoot);
+            }
 
             _stateMachine = StateMachineModule.Create<Boot>(this);
             _stateMachine.AddState<StatePatchPrepare>();
