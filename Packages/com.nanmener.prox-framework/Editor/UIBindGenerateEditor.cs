@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ProxFramework.UI;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using TMPro;
