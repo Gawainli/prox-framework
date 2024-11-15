@@ -1,0 +1,18 @@
+{
+    "name": "ProxFramework",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a388423cfc9930543940ba90c0130753",
+        "GUID:f917df8ad5930da4a8f18c2d36b217cf",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
