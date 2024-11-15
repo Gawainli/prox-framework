@@ -1,17 +1,5 @@
 {
   "dependencies": {
-    "com.nanmener.prox-framework": {
-      "version": "file:com.nanmener.prox-framework",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.unity.scriptablebuildpipeline": "1.21.21",
-        "com.unity.modules.assetbundle": "1.0.0",
-        "com.unity.modules.unitywebrequest": "1.0.0",
-        "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
-        "com.unity.textmeshpro": "3.0.9"
-      }
-    },
     "com.unity.burst": {
       "version": "1.8.17",
       "depth": 1,
