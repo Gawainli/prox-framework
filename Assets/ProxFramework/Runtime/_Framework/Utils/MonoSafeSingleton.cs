@@ -1,5 +1,5 @@
 ﻿using System;
-using ProxFramework.Logger;
+
 using UnityEngine;
 
 namespace ProxFramework.Base
@@ -33,9 +33,9 @@ namespace ProxFramework.Base
 
                             if (FindObjectsOfType<T>().Length > 1)
                             {
-                                LogModule.Error("[Singleton] Something went really wrong " +
-                                                " - there should never be more than 1 singleton!" +
-                                                " Reopening the scene might fix it.");
+                                ProxFramework.Logger.Error("[Singleton] Something went really wrong " +
+                                                                  " - there should never be more than 1 singleton!" +
+                                                                  " Reopening the scene might fix it.");
                                 return _instance;
                             }
 
@@ -46,14 +46,14 @@ namespace ProxFramework.Base
                                 singleton.name = typeof(T).ToString() + " (Singleton)";
 
 
-                                LogModule.Info("[Singleton] An instance of " + typeof(T) +
-                                               " is needed in the scene, so '" + singleton +
-                                               "' was created with DontDestroyOnLoad.");
+                                ProxFramework.Logger.Info("[Singleton] An instance of " + typeof(T) +
+                                                                 " is needed in the scene, so '" + singleton +
+                                                                 "' was created with DontDestroyOnLoad.");
                             }
                             else
                             {
-                                LogModule.Info("[Singleton] Using instance already created: " +
-                                               _instance.gameObject.name);
+                                ProxFramework.Logger.Info("[Singleton] Using instance already created: " +
+                                                                 _instance.gameObject.name);
                             }
 
                             DontDestroyOnLoad(_instance.gameObject);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using ProxFramework.Logger;
+
 using ProxFramework.Module;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -138,7 +138,7 @@ namespace ProxFramework.UI
             var window = Activator.CreateInstance(type) as UIWindow;
             if (window == null)
             {
-                LogModule.Error($"Create window failed. Type:{type.FullName}");
+                Logger.Error($"Create window failed. Type:{type.FullName}");
                 return null;
             }
 
@@ -293,7 +293,7 @@ namespace ProxFramework.UI
                 var result = results[idx];
                 if (ExecuteEvents.Execute(result.gameObject, eventData, function))
                 {
-                    LogModule.Info(
+                    Logger.Info(
                         $"ExecuteEvents.Execute Success {result.gameObject.name} {function.Method.Name} EventType:{typeof(T).Name}");
                     if (passOneFirst && eventData.used)
                     {
@@ -302,7 +302,7 @@ namespace ProxFramework.UI
                 }
                 else
                 {
-                    LogModule.Info(
+                    Logger.Info(
                         $"ExecuteEvents.Execute Fail {result.gameObject.name} EventType:{typeof(T).Name}");
                     //如果当前object能响应click事件，但是没有响应，那么不再向下传递
                     if (passOneFirst && result.gameObject.GetComponent<IPointerClickHandler>() != null)
@@ -317,7 +317,7 @@ namespace ProxFramework.UI
 
         public void Initialize(object userData = null)
         {
-            LogModule.Info("UIModule Initialize");
+            Logger.Info("UIModule Initialize");
             if (userData is UnityEngine.GameObject uiRoot)
             {
                 UIRoot = uiRoot;

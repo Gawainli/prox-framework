@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using ProxFramework.Logger;
+
 
 namespace ProxFramework.Network
 {
@@ -163,7 +163,7 @@ namespace ProxFramework.Network
             }
             catch (Exception e)
             {
-                LogModule.Exception(e.ToString());
+                Logger.Exception(e.ToString());
             }
             finally
             {

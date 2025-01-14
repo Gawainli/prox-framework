@@ -1,7 +1,6 @@
 ﻿using System;
 using ProxFramework.Asset;
 using ProxFramework.Event;
-using ProxFramework.Logger;
 using ProxFramework.Module;
 using ProxFramework.Network;
 using ProxFramework.Pool;
@@ -28,7 +27,6 @@ namespace ProxFramework.Base
         {
             SetSettings();
 
-            ModuleCore.CreateModule<LogModule>();
             ModuleCore.CreateModule<StateMachineModule>();
             ModuleCore.CreateModule<EventModule>();
 
@@ -53,17 +51,17 @@ namespace ProxFramework.Base
                 ModuleCore.CreateModule<UIModule>(uiRoot);
             }
 
-            _stateMachine = StateMachineModule.Create<Boot>(this);
-            _stateMachine.AddState<StatePatchPrepare>();
-            _stateMachine.AddState<StateInitPackage>();
-            _stateMachine.AddState<StateUpdateVersion>();
-            _stateMachine.AddState<StateUpdateManifest>();
-            _stateMachine.AddState<StateCreateDownloader>();
-            _stateMachine.AddState<StateDownloadFile>();
-            _stateMachine.AddState<StateClearCache>();
-            _stateMachine.AddState<StatePatchDone>();
-            _stateMachine.AddState<StateStartGame>();
-            _stateMachine.AddState<StateLoadAssembly>();
+            // _stateMachine = StateMachineModule.Create<Boot>(this);
+            // _stateMachine.AddState<StatePatchPrepare>();
+            // _stateMachine.AddState<StateInitPackage>();
+            // _stateMachine.AddState<StateUpdateVersion>();
+            // _stateMachine.AddState<StateUpdateManifest>();
+            // _stateMachine.AddState<StateCreateDownloader>();
+            // _stateMachine.AddState<StateDownloadFile>();
+            // _stateMachine.AddState<StateClearCache>();
+            // _stateMachine.AddState<StatePatchDone>();
+            // _stateMachine.AddState<StateStartGame>();
+            // _stateMachine.AddState<StateLoadAssembly>();
 
             Initialized = true;
         }
@@ -72,7 +70,7 @@ namespace ProxFramework.Base
         {
             SettingUtils.playMode = resPlayMode;
             Application.targetFrameRate = defaultFrameRate;
-            LogModule.Info($"Boot SetSettings playMode:{resPlayMode} frameRate:{defaultFrameRate}");
+            Logger.Info($"Boot SetSettings playMode:{resPlayMode} frameRate:{defaultFrameRate}");
         }
 
         public void Tick(float deltaTime, float unscaledDeltaTime)
@@ -97,7 +95,7 @@ namespace ProxFramework.Base
 
         private void Start()
         {
-            _stateMachine.Start<StatePatchPrepare>();
+            // _stateMachine.Start<StatePatchPrepare>();
         }
 
         private void Update()

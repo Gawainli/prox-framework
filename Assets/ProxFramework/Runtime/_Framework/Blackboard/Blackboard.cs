@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProxFramework.Logger;
 
 namespace ProxFramework.Blackboard
 {

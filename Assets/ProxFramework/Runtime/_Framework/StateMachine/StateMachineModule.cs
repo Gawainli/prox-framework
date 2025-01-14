@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ProxFramework.Base;
-using ProxFramework.Logger;
+
 using ProxFramework.Module;
 
 namespace ProxFramework.StateMachine
@@ -56,7 +56,7 @@ namespace ProxFramework.StateMachine
 
         public void Initialize(object userData = null)
         {
-            LogModule.Info("StateMachineModule Initialize");
+            Logger.Info("StateMachineModule Initialize");
             Initialized = true;
         }
 

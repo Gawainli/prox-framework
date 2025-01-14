@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Asset;
-using ProxFramework.Logger;
+
 using UnityEngine;
 using YooAsset;
 
@@ -63,7 +63,7 @@ namespace ProxFramework.Pool
         {
             if (package == null)
             {
-                LogModule.Error("CreatePoolAsync package is null");
+                Logger.Error("CreatePoolAsync package is null");
                 return;
             }
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using ProxFramework.Logger;
+
 using ProxFramework.Module;
 using UnityEngine;
 using YooAsset;
@@ -73,7 +73,7 @@ namespace ProxFramework.Pool
 
             if (pool == null)
             {
-                LogModule.Error($"PoolModule.Spawn: location {assetPath} not found");
+                Logger.Error($"PoolModule.Spawn: location {assetPath} not found");
                 return null;
             }
 
@@ -131,7 +131,7 @@ namespace ProxFramework.Pool
             var cfg = userData as PoolModuleCfg;
             if (cfg == null)
             {
-                LogModule.Error("PoolModule.Initialize: cfg is null");
+                Logger.Error("PoolModule.Initialize: cfg is null");
                 return;
             }
 

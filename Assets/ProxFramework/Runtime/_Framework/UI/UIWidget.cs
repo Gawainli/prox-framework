@@ -1,4 +1,4 @@
-﻿using ProxFramework.Logger;
+﻿
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -30,7 +30,7 @@ namespace ProxFramework.UI
             var transform = rootTransform.Find(path);
             if (transform == null)
             {
-                LogModule.Error($"Widget:{GetType().Name} Q Error: {path} is null");
+                Logger.Error($"Widget:{GetType().Name} Q Error: {path} is null");
             }
             return transform.GetComponent<T>();
         }

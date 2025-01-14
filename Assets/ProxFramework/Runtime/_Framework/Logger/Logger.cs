@@ -1,11 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
-using ProxFramework.Base;
-using ProxFramework.Module;
-using ProxFramework.Utils;
 
-namespace ProxFramework.Logger
+namespace ProxFramework
 {
     public enum LogLevel
     {
@@ -26,7 +22,7 @@ namespace ProxFramework.Logger
         File = 0x4
     }
 
-    public class LogModule : IModule
+    public static class Logger
     {
         public static LogLevel filterLevel = LogLevel.Info;
         public static OutputType outputType = OutputType.Editor;
@@ -181,22 +177,5 @@ namespace ProxFramework.Logger
 
             return stringBuilder;
         }
-
-        public void Initialize(object userData = null)
-        {
-            Info("LogModule Initialize");
-            Initialized = true;
-        }
-
-        public void Tick(float deltaTime, float unscaledDeltaTime)
-        {
-        }
-
-        public void Shutdown()
-        {
-        }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
     }
 }

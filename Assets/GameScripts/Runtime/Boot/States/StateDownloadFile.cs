@@ -1,6 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
 using ProxFramework.Asset;
-using ProxFramework.Logger;
 using ProxFramework.StateMachine;
 using YooAsset;
 
@@ -14,7 +13,7 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            LogModule.Info("start download file");
+            Logger.Info("start download file");
             AssetModule.downloaderOperation.OnDownloadErrorCallback = OnDownloadErrorCallback;
             AssetModule.downloaderOperation.OnDownloadProgressCallback = OnDownloadProgress;
             AssetModule.downloaderOperation.BeginDownload();
@@ -31,13 +30,13 @@ namespace ProxFramework.Base
         
         public void OnDownloadErrorCallback(string filename, string error)
         {
-            LogModule.Error($"download error: {filename}, {error}");
+            Logger.Error($"download error: {filename}, {error}");
         }
 
         public void OnDownloadProgress(int totalDownloadCount, int currentDownloadCount, long totalDownloadBytes,
             long currentDownloadBytes)
         {
-            LogModule.Info($" download progress: {currentDownloadCount}/{totalDownloadCount}, {currentDownloadBytes}/{totalDownloadBytes}");
+            Logger.Info($" download progress: {currentDownloadCount}/{totalDownloadCount}, {currentDownloadBytes}/{totalDownloadBytes}");
         }
             
     }

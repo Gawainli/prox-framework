@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
-using ProxFramework.Logger;
 using ProxFramework.Module;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,22 +13,22 @@ namespace ProxFramework.Asset
     {
         public void Log(string message)
         {
-            LogModule.Info(message);
+            Logger.Info(message);
         }
 
         public void Warning(string message)
         {
-            LogModule.Warning(message);
+            Logger.Warning(message);
         }
 
         public void Error(string message)
         {
-            LogModule.Error(message);
+            Logger.Error(message);
         }
 
         public void Exception(Exception exception)
         {
-            LogModule.Exception(exception.ToString());
+            Logger.Exception(exception.ToString());
         }
     }
 
@@ -83,14 +82,14 @@ namespace ProxFramework.Asset
         {
             if (userData == null)
             {
-                LogModule.Error("ResourceModule Initialize failed");
+                Logger.Error("ResourceModule Initialize failed");
                 return;
             }
 
             cfg = userData as AssetModuleCfg;
             if (cfg == null || string.IsNullOrEmpty(cfg.assetPkgName))
             {
-                LogModule.Error("ResourceModule Initialize failed");
+                Logger.Error("ResourceModule Initialize failed");
                 return;
             }
 
@@ -175,20 +174,20 @@ namespace ProxFramework.Asset
 
             if (initializationOperation == null)
             {
-                LogModule.Error("ResourceModule Initialize failed");
+                Logger.Error("ResourceModule Initialize failed");
                 return false;
             }
 
             await initializationOperation.ToUniTask();
             if (initializationOperation.Status == EOperationStatus.Succeed)
             {
-                LogModule.Info("AssetModule Initialize Succeed");
+                Logger.Info("AssetModule Initialize Succeed");
                 Initialized = true;
                 return true;
             }
             else
             {
-                LogModule.Error($"{initializationOperation.Error}");
+                Logger.Error($"{initializationOperation.Error}");
                 return false;
             }
         }
@@ -244,20 +243,20 @@ namespace ProxFramework.Asset
 
             if (initializationOperation == null)
             {
-                LogModule.Error("ResourceModule Initialize failed");
+                Logger.Error("ResourceModule Initialize failed");
                 return false;
             }
 
             await initializationOperation.ToUniTask();
             if (initializationOperation.Status == EOperationStatus.Succeed)
             {
-                LogModule.Info("AssetModule Initialize Succeed");
+                Logger.Info("AssetModule Initialize Succeed");
                 Initialized = true;
                 return true;
             }
             else
             {
-                LogModule.Error($"{initializationOperation.Error}");
+                Logger.Error($"{initializationOperation.Error}");
                 return false;
             }
         }
@@ -268,13 +267,13 @@ namespace ProxFramework.Asset
             await op.ToUniTask();
             if (op.Status == EOperationStatus.Succeed)
             {
-                LogModule.Info($"GetStaticVersion Succeed. version: {op.PackageVersion}");
+                Logger.Info($"GetStaticVersion Succeed. version: {op.PackageVersion}");
                 packageVersion = op.PackageVersion;
                 return true;
             }
             else
             {
-                LogModule.Error($"{op.Error}");
+                Logger.Error($"{op.Error}");
                 return false;
             }
         }
@@ -286,12 +285,12 @@ namespace ProxFramework.Asset
 
             if (op.Status == EOperationStatus.Succeed)
             {
-                LogModule.Info($"UpdateManifest Succeed.");
+                Logger.Info($"UpdateManifest Succeed.");
                 return true;
             }
             else
             {
-                LogModule.Error($"{op.Error}");
+                Logger.Error($"{op.Error}");
                 return false;
             }
         }
@@ -304,12 +303,12 @@ namespace ProxFramework.Asset
 
             if (downloader.TotalDownloadCount == 0)
             {
-                LogModule.Info("No files need to download");
+                Logger.Info("No files need to download");
                 return false;
             }
             else
             {
-                LogModule.Info(
+                Logger.Info(
                     $"Found {totalDownloadCount} files need to download, total size is {totalDownloadBytes} bytes");
                 downloaderOperation = downloader;
                 return true;
@@ -325,7 +324,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -341,7 +340,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -356,7 +355,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -372,7 +371,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -387,7 +386,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -403,7 +402,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -419,7 +418,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -435,7 +434,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -451,7 +450,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                LogModule.Error($"{op.LastError}");
+                Logger.Error($"{op.LastError}");
                 return default;
             }
         }

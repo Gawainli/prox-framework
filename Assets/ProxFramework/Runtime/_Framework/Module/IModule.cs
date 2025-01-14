@@ -1,6 +1,4 @@
-﻿using ProxFramework.Logger;
-
-namespace ProxFramework.Module
+﻿namespace ProxFramework.Module
 {
     public interface IModule
     {

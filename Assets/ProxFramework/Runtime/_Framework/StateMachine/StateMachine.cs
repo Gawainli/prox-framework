@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProxFramework.Logger;
 using UnityEngine;
 
 namespace ProxFramework.StateMachine
@@ -35,7 +34,7 @@ namespace ProxFramework.StateMachine
             _lastState = _currentState;
             if (_currentState == null)
             {
-                LogModule.Error("Start StateMachine Failed, State is Null");
+                Logger.Error("Start StateMachine Failed, State is Null");
                 return;
             }
 
@@ -124,14 +123,14 @@ namespace ProxFramework.StateMachine
         {
             if (!isRunning)
             {
-                LogModule.Error($"{name} ChangeState Failed, StateMachine is not Running");
+                Logger.Error($"{name} ChangeState Failed, StateMachine is not Running");
                 return;
             }
 
             var state = GetState(typeof(T));
             if (state == null)
             {
-                LogModule.Error($"{typeof(T)} ChangeState Failed, State is Null");
+                Logger.Error($"{typeof(T)} ChangeState Failed, State is Null");
                 return;
             }
 

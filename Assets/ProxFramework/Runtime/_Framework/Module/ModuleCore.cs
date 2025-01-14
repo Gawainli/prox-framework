@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProxFramework.Logger;
 using UnityEngine;
 
 namespace ProxFramework.Module
@@ -14,7 +13,7 @@ namespace ProxFramework.Module
             var type = typeof(T);
             if (ModulesDict.ContainsKey(type))
             {
-                LogModule.Error($"Module is already created. {type.FullName}");
+                Logger.Error($"Module is already created. {type.FullName}");
                 return null;
             }
 

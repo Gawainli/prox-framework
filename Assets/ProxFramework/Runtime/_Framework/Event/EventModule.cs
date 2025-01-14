@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ProxFramework.Base;
-using ProxFramework.Logger;
+
 using ProxFramework.Module;
 using UnityEngine;
 
@@ -134,7 +134,7 @@ namespace ProxFramework.Event
 
         public void Initialize(object userData = null)
         {
-            LogModule.Info("EventModule Initialize");
+            Logger.Info("EventModule Initialize");
             Initialized = true;
         }
 

@@ -1,4 +1,4 @@
-﻿using ProxFramework.Logger;
+﻿
 using UnityEngine;
 
 namespace ProxFramework.Utils
@@ -16,7 +16,7 @@ namespace ProxFramework.Utils
             }
             else
             {
-                LogModule.Warning($"More than one single:{nameof(T)}. Destroy this game object:{gameObject.name}");
+                Logger.Warning($"More than one single:{nameof(T)}. Destroy this game object:{gameObject.name}");
                 Destroy(gameObject);
             }
         }

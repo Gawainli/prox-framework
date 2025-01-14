@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using ProxFramework.Logger;
+
 using UnityEngine;
 
 namespace ProxFramework.Network
@@ -49,7 +49,7 @@ namespace ProxFramework.Network
             }
             catch (Exception e)
             {
-                LogModule.Exception(e.ToString());
+                Logger.Exception(e.ToString());
             }
         }
 
