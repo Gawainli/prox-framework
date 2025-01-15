@@ -29,7 +29,12 @@ namespace GameName.Runtime
             }
             else
             {
-                fsm.SetBlackboardValue("totalDownloaderOp",downloaderOpList);
+                var downloadOp = downloaderOpList[0];
+                for (int i = 1; i < downloaderOpList.Count; i++)
+                {
+                    downloadOp.Combine(downloaderOpList[i]);
+                }
+                fsm.SetBlackboardValue("downloaderOp",downloadOp);
                 ChangeState<StateDownloadFile>();
             }
         }
