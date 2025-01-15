@@ -14,7 +14,7 @@ namespace GameName.Runtime
         public override void Enter()
         {
             var downloaderOpList = new List<ResourceDownloaderOperation>();
-            foreach (var pkg in AssetModule.GetAllPackages())
+            foreach (var pkg in AssetModule.hostPackages)
             {
                 var op = AssetModule.CreateResourceDownloader(pkg.PackageName);
                 if (op.TotalDownloadCount > 0)

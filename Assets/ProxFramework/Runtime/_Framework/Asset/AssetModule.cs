@@ -57,6 +57,7 @@ namespace ProxFramework.Asset
         }
 
         public static Dictionary<string, ResourcePackage> mapNameToResourcePackage = new();
+        public static List<ResourcePackage> hostPackages = new();
         public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
         public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
         public static int ctsTaskId;
@@ -73,11 +74,13 @@ namespace ProxFramework.Asset
             var defaultPackage = YooAssets.TryGetPackage(DefaultPkgName);
             if (defaultPackage == null)
             {
-                defaultPackage = YooAssets.CreatePackage(cfg.assetPkgName);
+                defaultPackage = YooAssets.CreatePackage(DefaultPkgName);
             }
+
+            YooAssets.SetDefaultPackage(defaultPackage);
         }
 
-        public static InitializationOperation InitPackage(string packageName)
+        public static async UniTask<EOperationStatus> InitPackage(string packageName)
         {
             var pkgPlayMode = PlayMode;
 #if UNITY_EDITOR
@@ -114,16 +117,17 @@ namespace ProxFramework.Asset
                 createParameters.CacheFileSystemParameters =
                     FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
                 initializationOperation = package.InitializeAsync(createParameters);
+                hostPackages.Add(package);
             }
             else if (pkgPlayMode == EPlayMode.WebPlayMode)
             {
                 var createParameters = new WebPlayModeParameters();
 #if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
-			string defaultHostServer = GetHostServerURL();
-            string fallbackHostServer = GetHostServerURL();
-            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
-            createParameters.WebServerFileSystemParameters =
-            WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
+			    string defaultHostServer = GetHostServerURL();
+                string fallbackHostServer = GetHostServerURL();
+                IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+                createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
+                needDownloadPackages.Add(package);
 #else
                 createParameters.WebServerFileSystemParameters =
                     FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
@@ -131,7 +135,13 @@ namespace ProxFramework.Asset
                 initializationOperation = package.InitializeAsync(createParameters);
             }
 
-            return initializationOperation;
+            if (initializationOperation == null)
+            {
+                return EOperationStatus.Failed;
+            }
+
+            await initializationOperation.ToUniTask();
+            return initializationOperation.Status;
         }
 
         private static string GetHostServerURL()
@@ -140,7 +150,6 @@ namespace ProxFramework.Asset
             var appVersion = Application.version;
 
 #if UNITY_EDITOR
-            hostUrl = SettingsUtil.EditorDevSettings.internalHostServer;
             if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
                 return $"{hostUrl}/android/{appVersion}";
             if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS)

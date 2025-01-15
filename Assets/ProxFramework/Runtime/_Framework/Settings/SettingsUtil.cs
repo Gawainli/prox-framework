@@ -14,11 +14,11 @@ namespace ProxFramework.Runtime.Settings
         {
             get
             {
-                if (_frameworkSettings == null)
+                if (_editorDevSettings == null)
                 {
-                    var assetType = typeof(FrameworkSettings);
-                    string[] globalAssetPaths = UnityEditor.AssetDatabase.FindAssets($"t:{assetType}");
-                    if (globalAssetPaths.Length == 0)
+                    var assetType = typeof(EditorDevSettings);
+                    string[] assetGuids = UnityEditor.AssetDatabase.FindAssets($"t:{assetType}");
+                    if (assetGuids.Length == 0)
                     {
                         _editorDevSettings = ScriptableObject.CreateInstance<EditorDevSettings>();
                         UnityEditor.AssetDatabase.CreateAsset(_editorDevSettings, "Assets/EditorDevSettings.asset");
@@ -28,14 +28,15 @@ namespace ProxFramework.Runtime.Settings
                             $"No Editor Dev Settings found in project. Created new one at Assets/EditorDevSettings.asset");
                     }
 
-                    if (globalAssetPaths.Length > 1)
+                    if (assetGuids.Length > 1)
                     {
                         PLogger.Warning(
-                            $"More than one Editor Dev Settings found in project. We use first one. Path:{globalAssetPaths[0]}");
+                            $"More than one Editor Dev Settings found in project. We use first one. Path:{UnityEditor.AssetDatabase.GUIDToAssetPath(assetGuids[0])}");
                     }
 
                     _editorDevSettings =
-                        UnityEditor.AssetDatabase.LoadAssetAtPath<EditorDevSettings>(globalAssetPaths[0]);
+                        UnityEditor.AssetDatabase.LoadAssetAtPath<EditorDevSettings>(
+                            UnityEditor.AssetDatabase.GUIDToAssetPath(assetGuids[0]));
                 }
 
                 return _editorDevSettings;
@@ -63,13 +64,13 @@ namespace ProxFramework.Runtime.Settings
         {
 #if UNITY_EDITOR
             var assetType = typeof(FrameworkSettings);
-            string[] globalAssetPaths = UnityEditor.AssetDatabase.FindAssets($"t:{assetType}");
-            if (globalAssetPaths.Length > 1)
+            string[] assetGuids = UnityEditor.AssetDatabase.FindAssets($"t:{assetType}");
+            if (assetGuids.Length > 1)
             {
-                foreach (var assetPath in globalAssetPaths)
+                foreach (var guid in assetGuids)
                 {
                     PLogger.Error(
-                        $"Could not had Multiple {assetType}. Repeated Path: {UnityEditor.AssetDatabase.GUIDToAssetPath(assetPath)}");
+                        $"Could not had Multiple {assetType}. Repeated Path: {UnityEditor.AssetDatabase.GUIDToAssetPath(guid)}");
                 }
 
                 throw new Exception($"Could not had Multiple {assetType}");

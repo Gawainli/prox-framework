@@ -12,10 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de70a4d29d0d4519a54172dd020e09fa, type: 3}
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
-  baseSettings:
-    scriptVersion: 
+  targetFrameRate: 60
+  playMode: 0
+  assetSettings:
+    scriptVersion: 1.0.0
     preloadTags: 
-    assetCdn: 
+    assetCdn: http://127.0.0.1
+    defaultPackageName: DefaultPackage
+    defaultRawPackageName: RawPackage
     packageNames: []
     rawPackageNames: []
   hclrSettings:

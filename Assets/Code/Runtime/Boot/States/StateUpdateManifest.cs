@@ -27,7 +27,7 @@ namespace GameName.Runtime
         
         private async UniTask<bool> UpdateManifest()
         {
-            foreach (var pkg in AssetModule.GetAllPackages())
+            foreach (var pkg in AssetModule.hostPackages)
             {
                 var op = AssetModule.UpdatePackageManifestAsync(pkg.PackageName);
                 await op.ToUniTask();

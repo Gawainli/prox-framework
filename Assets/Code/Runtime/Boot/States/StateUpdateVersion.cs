@@ -28,7 +28,7 @@ namespace GameName.Runtime
 
         private async UniTask<bool> UpdateVersion()
         {
-            foreach (var pkg in AssetModule.GetAllPackages())
+            foreach (var pkg in AssetModule.hostPackages)
             {
                 var op = AssetModule.UpdatePackageVersionAsync(true, 60, pkg.PackageName);
                 await op.ToUniTask();

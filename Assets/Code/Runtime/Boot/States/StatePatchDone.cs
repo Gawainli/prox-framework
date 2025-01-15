@@ -12,10 +12,11 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            foreach (var pkg in AssetModule.GetAllPackages())
+            foreach (var pkg in AssetModule.hostPackages)
             {
                 await AssetModule.ClearUnusedCacheFilesAsync(pkg.PackageName).ToUniTask();
             }
+            AssetModule.hostPackages.Clear();
 
 #if ENABLE_HYBRIDCLR
             ChangeState<StateLoadAssembly>();

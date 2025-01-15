@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: EditorSettings
   m_EditorClassIdentifier: 
   playMode: 0
-  internalHostServer: 
+  internalHostServer: http://127.0.0.1
+  splitArtRes: 0
+  splitArtResPackageNames: []
