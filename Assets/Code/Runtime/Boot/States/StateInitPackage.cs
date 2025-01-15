@@ -41,14 +41,7 @@ namespace GameName.Runtime
                 }
             }
 
-            if (AssetModule.hostPackages.Count > 0)
-            {
-                ChangeState<StateUpdateVersion>();
-            }
-            else
-            {
-                ChangeState<StateStartGame>();
-            }
+            ChangeState<StateUpdateVersion>();
         }
 
         public override void Exit()

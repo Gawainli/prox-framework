@@ -57,7 +57,6 @@ namespace ProxFramework.Asset
         }
 
         public static Dictionary<string, ResourcePackage> mapNameToResourcePackage = new();
-        public static List<ResourcePackage> hostPackages = new();
         public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
         public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
         public static int ctsTaskId;
@@ -117,7 +116,6 @@ namespace ProxFramework.Asset
                 createParameters.CacheFileSystemParameters =
                     FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
                 initializationOperation = package.InitializeAsync(createParameters);
-                hostPackages.Add(package);
             }
             else if (pkgPlayMode == EPlayMode.WebPlayMode)
             {
@@ -127,7 +125,6 @@ namespace ProxFramework.Asset
                 string fallbackHostServer = GetHostServerURL();
                 IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
                 createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
-                needDownloadPackages.Add(package);
 #else
                 createParameters.WebServerFileSystemParameters =
                     FileSystemParameters.CreateDefaultWebServerFileSystemParameters();

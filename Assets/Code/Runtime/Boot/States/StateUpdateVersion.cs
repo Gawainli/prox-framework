@@ -28,7 +28,7 @@ namespace GameName.Runtime
 
         private async UniTask<bool> UpdateVersion()
         {
-            foreach (var pkg in AssetModule.hostPackages)
+            foreach (var pkg in AssetModule.GetAllPackages())
             {
                 var op = AssetModule.UpdatePackageVersionAsync(true, 60, pkg.PackageName);
                 await op.ToUniTask();
@@ -37,6 +37,8 @@ namespace GameName.Runtime
                     PLogger.Error($"Package {pkg.PackageName} UpdateVersion Failed : {op.Error}");
                     return false;
                 }
+                
+                fsm.SetBlackboardValue(op.PackageName, op.PackageVersion);
             }
 
             return true;

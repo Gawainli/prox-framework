@@ -184,14 +184,6 @@ namespace ProxFramework.StateMachine
             }
         }
 
-        public void SetBlackboardValue<T>(string key, T value)
-        {
-            if (!_blackboard.TryAdd(key, value))
-            {
-                _blackboard[key] = value;
-            }
-        }
-
         public object GetBlackboardValue(string key)
         {
             return _blackboard.GetValueOrDefault(key);

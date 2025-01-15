@@ -24,12 +24,13 @@ namespace GameName.Runtime
         public override void Exit()
         {
         }
-        
+
         private async UniTask<bool> UpdateManifest()
         {
-            foreach (var pkg in AssetModule.hostPackages)
+            foreach (var pkg in AssetModule.GetAllPackages())
             {
-                var op = AssetModule.UpdatePackageManifestAsync(pkg.PackageName);
+                var pkgVersion = fsm.GetBlackboardValue<string>(pkg.PackageName);
+                var op = AssetModule.UpdatePackageManifestAsync(pkgVersion, 60, pkg.PackageName);
                 await op.ToUniTask();
                 if (op.Status == EOperationStatus.Failed)
                 {
