@@ -13,19 +13,19 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            var module = ModuleCore.GetModule<AssetModule>();
-            var succeed = await module.InitPkgAsync();
-            if (succeed)
-            {
-                if (SettingUtils.playMode == EPlayMode.EditorSimulateMode || SettingUtils.playMode == EPlayMode.OfflinePlayMode || SettingUtils.playMode == EPlayMode.WebPlayMode)
-                {
-                    ChangeState<StateStartGame>();
-                }
-                else
-                {
-                    ChangeState<StateUpdateVersion>();
-                }
-            }
+            // var module = ModuleCore.GetModule<AssetModule>();
+            // var succeed = await module.InitPkgAsync();
+            // if (succeed)
+            // {
+                // if (SettingUtils.playMode == EPlayMode.EditorSimulateMode || SettingUtils.playMode == EPlayMode.OfflinePlayMode || SettingUtils.playMode == EPlayMode.WebPlayMode)
+                // {
+                //     ChangeState<StateStartGame>();
+                // }
+                // else
+                // {
+                //     ChangeState<StateUpdateVersion>();
+                // }
+            // }
         }
 
         public override void Exit()

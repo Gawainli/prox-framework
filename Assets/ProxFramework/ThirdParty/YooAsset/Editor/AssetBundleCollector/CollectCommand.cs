@@ -4,19 +4,19 @@ namespace YooAsset.Editor
     public class CollectCommand
     {
         /// <summary>
-        /// 构建模式
+        /// 模拟构建模式
         /// </summary>
-        public EBuildMode BuildMode { private set; get; }
+        public bool SimulateBuild { private set; get; }
 
+        /// <summary>
+        /// 使用资源依赖数据库
+        /// </summary>
+        public bool UseAssetDependencyDB { private set; get; }
+        
         /// <summary>
         /// 包裹名称
         /// </summary>
         public string PackageName { private set; get; }
-
-        /// <summary>
-        /// 忽略Unity引擎无法识别的文件
-        /// </summary>
-        public bool IgnoreDefaultType { private set; get; }
 
         /// <summary>
         /// 启用可寻址资源定位
@@ -48,21 +48,40 @@ namespace YooAsset.Editor
         /// </summary>
         public string ShadersBundleName { private set; get; }
 
+        /// <summary>
+        /// 忽略规则实例
+        /// </summary>
+        public IIgnoreRule IgnoreRule { private set; get; }
 
-        public CollectCommand(EBuildMode buildMode, string packageName, bool enableAddressable, bool locationToLower, bool includeAssetGUID, bool ignoreDefaultType, bool autoCollectShaders, bool uniqueBundleName)
+
+        public CollectCommand(bool simulateBuild, bool useAssetDependencyDB, string packageName,
+            bool enableAddressable, bool locationToLower, bool includeAssetGUID,
+            bool autoCollectShaders, bool uniqueBundleName, IIgnoreRule ignoreRule)
         {
-            BuildMode = buildMode;
+            SimulateBuild = simulateBuild;
+            UseAssetDependencyDB = useAssetDependencyDB;
             PackageName = packageName;
             EnableAddressable = enableAddressable;
             LocationToLower = locationToLower;
             IncludeAssetGUID = includeAssetGUID;
-            IgnoreDefaultType = ignoreDefaultType;
             AutoCollectShaders = autoCollectShaders;
             UniqueBundleName = uniqueBundleName;
+            IgnoreRule = ignoreRule;
 
             // 着色器统一全名称
             var packRuleResult = DefaultPackRule.CreateShadersPackRuleResult();
             ShadersBundleName = packRuleResult.GetBundleName(packageName, uniqueBundleName);
+        }
+
+        private AssetDependencyCache _assetDependency;
+        public AssetDependencyCache AssetDependency
+        {
+            get
+            {
+                if (_assetDependency == null)
+                    _assetDependency = new AssetDependencyCache(UseAssetDependencyDB);
+                return _assetDependency;
+            }
         }
     }
 }

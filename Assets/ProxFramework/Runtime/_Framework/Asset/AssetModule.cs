@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using Cysharp.Threading.Tasks;
-using ProxFramework.Module;
+using ProxFramework.Base;
+using ProxFramework.Runtime.Settings;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YooAsset;
 
 namespace ProxFramework.Asset
 {
-    public class ResLogger : YooAsset.ILogger
+    internal class ResLogger : YooAsset.ILogger
     {
         public void Log(string message)
         {
@@ -32,82 +32,45 @@ namespace ProxFramework.Asset
         }
     }
 
-    public class AssetModule : IModule
+    public partial class AssetModule
     {
         public static AssetModuleCfg cfg;
-        public static ResourcePackage assetPkg;
-        public static ResourcePackage rawPkg;
-        public static string packageVersion;
-
         public static DownloaderOperation downloaderOperation;
         public static int downloadingMaxNum = 10;
         public static int failedTryAgain = 3;
 
-        private class GameDecryptionServices : IDecryptionServices
+        private static EPlayMode _playMode;
+
+        public static EPlayMode PlayMode
         {
-            public ulong LoadFromFileOffset(DecryptFileInfo fileInfo)
+            get
             {
-                return 32;
-            }
-
-            public byte[] LoadFromMemory(DecryptFileInfo fileInfo)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Stream LoadFromStream(DecryptFileInfo fileInfo)
-            {
-                var bundleStream =
-                    new FileStream(fileInfo.FileLoadPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return bundleStream;
-            }
-
-            public uint GetManagedReadBufferSize()
-            {
-                return 1024;
-            }
-
-            public AssetBundle LoadAssetBundle(DecryptFileInfo fileInfo, out Stream managedStream)
-            {
-                throw new NotImplementedException();
-            }
-
-            public AssetBundleCreateRequest LoadAssetBundleAsync(DecryptFileInfo fileInfo, out Stream managedStream)
-            {
-                throw new NotImplementedException();
+#if UNITY_EDITOR
+                _playMode = SettingsUtil.EditorDevSettings.playMode;
+#else
+                playMode = SettingsUtil.GlobalSettings.assetSettings.playMode;
+#endif
+                return _playMode;
             }
         }
 
-        public void Initialize(object userData = null)
+        public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
+        public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
+        public static int ctsTaskId;
+
+        public void Initialize()
         {
-            if (userData == null)
+            if (!YooAssets.Initialized)
             {
-                Logger.Error("ResourceModule Initialize failed");
-                return;
+                YooAssets.Initialize(new ResLogger());
             }
 
-            cfg = userData as AssetModuleCfg;
-            if (cfg == null || string.IsNullOrEmpty(cfg.assetPkgName))
-            {
-                Logger.Error("ResourceModule Initialize failed");
-                return;
-            }
+            ctsTaskId = TaskCtsModule.GetCts().id;
 
-            YooAssets.Initialize(new ResLogger());
-            assetPkg = YooAssets.TryGetPackage(cfg.assetPkgName);
-            if (assetPkg == null)
+            var defaultPackage = YooAssets.TryGetPackage(DefaultPkgName);
+            if (defaultPackage == null)
             {
-                assetPkg = YooAssets.CreatePackage(cfg.assetPkgName);
-                YooAssets.SetDefaultPackage(assetPkg);
-            }
-
-            if (!String.IsNullOrEmpty(cfg.rawPkgName))
-            {
-                rawPkg = YooAssets.TryGetPackage(cfg.rawPkgName);
-                if (rawPkg == null)
-                {
-                    rawPkg = YooAssets.CreatePackage(cfg.rawPkgName);
-                }
+                defaultPackage = YooAssets.CreatePackage(cfg.assetPkgName);
             }
         }
 
@@ -119,202 +82,88 @@ namespace ProxFramework.Asset
         {
         }
 
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
-
-        public async UniTask<bool> InitPkgAsync(ResourcePackage pkg, string pkgName)
+        public InitializationOperation InitPackage(string packageName)
         {
-            // 编辑器下的模拟模式
+            var pkgPlayMode = PlayMode;
+#if UNITY_EDITOR
+            pkgPlayMode = SettingsUtil.EditorDevSettings.GetPackageDevPlayMode(packageName);
+#endif
+            var package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
+
             InitializationOperation initializationOperation = null;
-            if (cfg.ePlayMode == EPlayMode.EditorSimulateMode)
+            if (pkgPlayMode == EPlayMode.EditorSimulateMode)
             {
-                var createParameters = new EditorSimulateModeParameters
-                {
-                    SimulateManifestFilePath =
-                        EditorSimulateModeHelper.SimulateBuild(EDefaultBuildPipeline.BuiltinBuildPipeline.ToString(),
-                            pkgName)
-                };
-                initializationOperation = pkg.InitializeAsync(createParameters);
+                var buildResult = EditorSimulateModeHelper.SimulateBuild(packageName);
+                var packageRoot = buildResult.PackageRootDirectory;
+                var createParameters = new EditorSimulateModeParameters();
+                createParameters.EditorFileSystemParameters =
+                    FileSystemParameters.CreateDefaultEditorFileSystemParameters(packageRoot);
+                initializationOperation = package.InitializeAsync(createParameters);
+            }
+            else if (pkgPlayMode == EPlayMode.OfflinePlayMode)
+            {
+                var createParameters = new OfflinePlayModeParameters();
+                createParameters.BuildinFileSystemParameters =
+                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+                initializationOperation = package.InitializeAsync(createParameters);
+            }
+            else if (pkgPlayMode == EPlayMode.HostPlayMode)
+            {
+                string defaultHostServer = GetHostServerURL();
+                string fallbackHostServer = GetHostServerURL();
+                IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+                var createParameters = new HostPlayModeParameters();
+                createParameters.BuildinFileSystemParameters =
+                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+                createParameters.CacheFileSystemParameters =
+                    FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
+                initializationOperation = package.InitializeAsync(createParameters);
+            }
+            else if (pkgPlayMode == EPlayMode.WebPlayMode)
+            {
+                var createParameters = new WebPlayModeParameters();
+#if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
+			string defaultHostServer = GetHostServerURL();
+            string fallbackHostServer = GetHostServerURL();
+            IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+            createParameters.WebServerFileSystemParameters =
+            WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
+#else
+                createParameters.WebServerFileSystemParameters =
+                    FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
+#endif
+                initializationOperation = package.InitializeAsync(createParameters);
             }
 
-            // 单机运行模式
-            if (cfg.ePlayMode == EPlayMode.OfflinePlayMode)
-            {
-                var createParameters = new OfflinePlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices(),
-                };
-                initializationOperation = pkg.InitializeAsync(createParameters);
-            }
-
-            // 联机运行模式
-            if (cfg.ePlayMode == EPlayMode.HostPlayMode)
-            {
-                var createParameters = new HostPlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices(),
-                    // createParameters.QueryServices = new GameQueryServices();
-                    RemoteServices = new YooRemoteService(cfg.DefaultHostServer, cfg.DefaultHostServer)
-                };
-                initializationOperation = pkg.InitializeAsync(createParameters);
-            }
-
-            //webgl模式运行
-            if (cfg.ePlayMode == EPlayMode.WebPlayMode)
-            {
-                var createParameters = new WebPlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices(),
-                    RemoteServices = new YooRemoteService(cfg.DefaultHostServer, cfg.DefaultHostServer),
-                    BuildinQueryServices = new GameQueryServices(),
-                };
-                initializationOperation = pkg.InitializeAsync(createParameters);
-                YooAssets.SetCacheSystemDisableCacheOnWebGL();
-            }
-
-            if (initializationOperation == null)
-            {
-                Logger.Error("ResourceModule Initialize failed");
-                return false;
-            }
-
-            await initializationOperation.ToUniTask();
-            if (initializationOperation.Status == EOperationStatus.Succeed)
-            {
-                Logger.Info("AssetModule Initialize Succeed");
-                Initialized = true;
-                return true;
-            }
-            else
-            {
-                Logger.Error($"{initializationOperation.Error}");
-                return false;
-            }
+            return initializationOperation;
         }
 
-        public async UniTask<bool> InitPkgAsync()
+        private string GetHostServerURL()
         {
-            // 编辑器下的模拟模式
-            InitializationOperation initializationOperation = null;
-            if (cfg.ePlayMode == EPlayMode.EditorSimulateMode)
-            {
-                var createParameters = new EditorSimulateModeParameters
-                {
-                    SimulateManifestFilePath =
-                        EditorSimulateModeHelper.SimulateBuild(EDefaultBuildPipeline.BuiltinBuildPipeline.ToString(),
-                            cfg.assetPkgName)
-                };
-                initializationOperation = assetPkg.InitializeAsync(createParameters);
-            }
+            var hostUrl = SettingsUtil.GlobalSettings.assetSettings.assetCdn;
+            var appVersion = Application.version;
 
-            // 单机运行模式
-            if (cfg.ePlayMode == EPlayMode.OfflinePlayMode)
-            {
-                var createParameters = new OfflinePlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices()
-                };
-                initializationOperation = assetPkg.InitializeAsync(createParameters);
-            }
-
-            // 联机运行模式
-            if (cfg.ePlayMode == EPlayMode.HostPlayMode)
-            {
-                var createParameters = new HostPlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices(),
-                    // createParameters.QueryServices = new GameQueryServices();
-                    RemoteServices = new YooRemoteService(cfg.DefaultHostServer, cfg.DefaultHostServer)
-                };
-                initializationOperation = assetPkg.InitializeAsync(createParameters);
-            }
-
-            //webgl模式运行
-            if (cfg.ePlayMode == EPlayMode.WebPlayMode)
-            {
-                var createParameters = new WebPlayModeParameters
-                {
-                    DecryptionServices = new GameDecryptionServices(),
-                    RemoteServices = new YooRemoteService(cfg.DefaultHostServer, cfg.DefaultHostServer),
-                    BuildinQueryServices = new GameQueryServices(),
-                };
-                initializationOperation = assetPkg.InitializeAsync(createParameters);
-            }
-
-            if (initializationOperation == null)
-            {
-                Logger.Error("ResourceModule Initialize failed");
-                return false;
-            }
-
-            await initializationOperation.ToUniTask();
-            if (initializationOperation.Status == EOperationStatus.Succeed)
-            {
-                Logger.Info("AssetModule Initialize Succeed");
-                Initialized = true;
-                return true;
-            }
+#if UNITY_EDITOR
+            hostUrl = SettingsUtil.EditorDevSettings.internalHostServer;
+            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
+                return $"{hostUrl}/android/{appVersion}";
+            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS)
+                return $"{hostUrl}/ios/{appVersion}";
+            else if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.WebGL)
+                return $"{hostUrl}/webgl/{appVersion}";
             else
-            {
-                Logger.Error($"{initializationOperation.Error}");
-                return false;
-            }
+                return $"{hostUrl}/pc/{appVersion}";
+#else
+        if (Application.platform == RuntimePlatform.Android)
+            return $"{hostUrl}/android/{appVersion}";
+        else if (Application.platform == RuntimePlatform.IPhonePlayer)
+            return $"{hostUrl}/ios/{appVersion}";
+        else if (Application.platform == RuntimePlatform.WebGLPlayer)
+            return $"{hostUrl}/webgl/{appVersion}";
+        else
+            return $"{hostUrl}/pc/{appVersion}";
+#endif
         }
-
-        public static async UniTask<bool> GetStaticVersion()
-        {
-            var op = assetPkg.UpdatePackageVersionAsync();
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                Logger.Info($"GetStaticVersion Succeed. version: {op.PackageVersion}");
-                packageVersion = op.PackageVersion;
-                return true;
-            }
-            else
-            {
-                Logger.Error($"{op.Error}");
-                return false;
-            }
-        }
-
-        public static async UniTask<bool> UpdateManifest()
-        {
-            var op = assetPkg.UpdatePackageManifestAsync(packageVersion, true);
-            await op.ToUniTask();
-
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                Logger.Info($"UpdateManifest Succeed.");
-                return true;
-            }
-            else
-            {
-                Logger.Error($"{op.Error}");
-                return false;
-            }
-        }
-
-        public static bool CreateDownloader()
-        {
-            var downloader = YooAssets.CreateResourceDownloader(downloadingMaxNum, failedTryAgain);
-            var totalDownloadCount = downloader.TotalDownloadCount;
-            var totalDownloadBytes = downloader.TotalDownloadBytes;
-
-            if (downloader.TotalDownloadCount == 0)
-            {
-                Logger.Info("No files need to download");
-                return false;
-            }
-            else
-            {
-                Logger.Info(
-                    $"Found {totalDownloadCount} files need to download, total size is {totalDownloadBytes} bytes");
-                downloaderOperation = downloader;
-                return true;
-            }
-        }
-
         public static T LoadAssetSync<T>(string path) where T : UnityEngine.Object
         {
             using var op = YooAssets.LoadAssetSync<T>(path);
@@ -457,7 +306,7 @@ namespace ProxFramework.Asset
 
         public static void UnloadUnusedAssets()
         {
-            assetPkg.UnloadUnusedAssets();
+            // assetPkg.UnloadUnusedAssets();
             GC.Collect();
         }
     }

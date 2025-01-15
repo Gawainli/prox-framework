@@ -12,12 +12,12 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            var all = AssetModule.assetPkg.GetAssetInfos("");
-            foreach (var info in all)
-            {
-                Logger.Info(info.AssetPath);
-            }
-            await SceneModule.ChangeSceneAsync("Assets/_Game/_Scenes/S_Main");
+            // var all = AssetModule.assetPkg.GetAssetInfos("");
+            // foreach (var info in all)
+            // {
+                // Logger.Info(info.AssetPath);
+            // }
+            // await SceneModule.ChangeSceneAsync("Assets/_Game/_Scenes/S_Main");
             
         }
 

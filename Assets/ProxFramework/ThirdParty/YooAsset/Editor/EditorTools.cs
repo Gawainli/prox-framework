@@ -497,14 +497,6 @@ namespace YooAsset.Editor
         }
 
         /// <summary>
-        /// 获取文件的哈希值
-        /// </summary>
-        public static string GetFileCRC32(string filePath)
-        {
-            return HashUtility.FileCRC32(filePath);
-        }
-
-        /// <summary>
         /// 读取文件的所有文本内容
         /// </summary>
         public static string ReadFileAllText(string filePath)
@@ -566,6 +558,21 @@ namespace YooAsset.Editor
         public static string GetRegularPath(string path)
         {
             return path.Replace('\\', '/').Replace("\\", "/"); //替换为Linux路径格式
+        }
+    
+        /// <summary>
+        /// 移除路径里的后缀名
+        /// </summary>
+        public static string RemoveExtension(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return str;
+
+            int index = str.LastIndexOf('.');
+            if (index == -1)
+                return str;
+            else
+                return str.Remove(index); //"assets/config/test.unity3d" --> "assets/config/test"
         }
 
         /// <summary>

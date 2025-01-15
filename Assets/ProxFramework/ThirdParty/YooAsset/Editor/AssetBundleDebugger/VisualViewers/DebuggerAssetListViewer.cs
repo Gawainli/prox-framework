@@ -35,9 +35,10 @@ namespace YooAsset.Editor
             _assetListView = _root.Q<ListView>("TopListView");
             _assetListView.makeItem = MakeAssetListViewItem;
             _assetListView.bindItem = BindAssetListViewItem;
-#if UNITY_2020_1_OR_NEWER
-            // _assetListView.onSelectionChange += AssetListView_onSelectionChange;
+#if UNITY_2022_3_OR_NEWER
             _assetListView.selectionChanged += AssetListView_onSelectionChange;
+#elif UNITY_2020_1_OR_NEWER
+            _assetListView.onSelectionChange += AssetListView_onSelectionChange;
 #else
             _assetListView.onSelectionChanged += AssetListView_onSelectionChange;
 #endif

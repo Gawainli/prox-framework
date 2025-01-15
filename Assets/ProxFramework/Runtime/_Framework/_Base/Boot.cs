@@ -38,18 +38,18 @@ namespace ProxFramework.Base
                 hostServerIP = hostServerIP,
                 appVersion = appVersion
             };
-            ModuleCore.CreateModule<AssetModule>(resCfg);
-            ModuleCore.CreateModule<PoolModule>(new PoolModuleCfg()
-            {
-                pkg = AssetModule.assetPkg,
-                poolingRoot = gameObject
-            });
-            ModuleCore.CreateModule<NetworkModule>();
-
-            if (uiRoot != null)
-            {
-                ModuleCore.CreateModule<UIModule>(uiRoot);
-            }
+            // ModuleCore.CreateModule<AssetModule>(resCfg);
+            // ModuleCore.CreateModule<PoolModule>(new PoolModuleCfg()
+            // {
+            //     pkg = AssetModule.assetPkg,
+            //     poolingRoot = gameObject
+            // });
+            // ModuleCore.CreateModule<NetworkModule>();
+            //
+            // if (uiRoot != null)
+            // {
+            //     ModuleCore.CreateModule<UIModule>(uiRoot);
+            // }
 
             // _stateMachine = StateMachineModule.Create<Boot>(this);
             // _stateMachine.AddState<StatePatchPrepare>();
@@ -68,7 +68,7 @@ namespace ProxFramework.Base
 
         private void SetSettings()
         {
-            SettingUtils.playMode = resPlayMode;
+            // SettingUtils.playMode = resPlayMode;
             Application.targetFrameRate = defaultFrameRate;
             Logger.Info($"Boot SetSettings playMode:{resPlayMode} frameRate:{defaultFrameRate}");
         }

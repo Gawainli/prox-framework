@@ -11,11 +11,11 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            var succeed = await AssetModule.GetStaticVersion();
-            if (succeed)
-            {
-                ChangeState<StateUpdateManifest>();
-            }
+            // var succeed = await AssetModule.GetStaticVersion();
+            // if (succeed)
+            // {
+                // ChangeState<StateUpdateManifest>();
+            // }
             
         }
 

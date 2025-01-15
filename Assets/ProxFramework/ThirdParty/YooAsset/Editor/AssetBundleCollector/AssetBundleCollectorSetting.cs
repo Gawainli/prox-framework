@@ -24,7 +24,6 @@ namespace YooAsset.Editor
         /// </summary>
         public bool UniqueBundleName = false;
 
-
         /// <summary>
         /// 包裹列表
         /// </summary>
@@ -90,7 +89,7 @@ namespace YooAsset.Editor
         /// <summary>
         /// 获取包裹收集的资源文件
         /// </summary>
-        public CollectResult GetPackageAssets(EBuildMode buildMode, string packageName)
+        public CollectResult GetPackageAssets(bool simulateBuild, bool useAssetDependencyDB, string packageName)
         {
             if (string.IsNullOrEmpty(packageName))
                 throw new Exception("Build package name is null or empty !");
@@ -100,13 +99,13 @@ namespace YooAsset.Editor
             package.CheckConfigError();
 
             // 创建资源收集命令
-            CollectCommand command = new CollectCommand(buildMode, packageName,
+            IIgnoreRule ignoreRule = AssetBundleCollectorSettingData.GetIgnoreRuleInstance(package.IgnoreRuleName);
+            CollectCommand command = new CollectCommand(simulateBuild, useAssetDependencyDB, packageName,
                  package.EnableAddressable,
                  package.LocationToLower,
                  package.IncludeAssetGUID,
-                 package.IgnoreDefaultType,
                  package.AutoCollectShaders,
-                 UniqueBundleName);
+                 UniqueBundleName, ignoreRule);
 
             // 获取收集的资源集合
             CollectResult collectResult = new CollectResult(command);

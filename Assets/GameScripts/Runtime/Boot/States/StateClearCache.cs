@@ -12,7 +12,7 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            await AssetModule.assetPkg.ClearAllCacheFilesAsync().ToUniTask();
+            // await AssetModule.assetPkg.ClearAllCacheFilesAsync().ToUniTask();
             ChangeState<StatePatchDone>();
         }
 

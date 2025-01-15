@@ -62,9 +62,10 @@ namespace YooAsset.Editor
             _items.Add(new ItemWrapper("Build Seconds", ConvertTime(buildReport.Summary.BuildSeconds)));
             _items.Add(new ItemWrapper("Build Target", $"{buildReport.Summary.BuildTarget}"));
             _items.Add(new ItemWrapper("Build Pipeline", $"{buildReport.Summary.BuildPipeline}"));
-            _items.Add(new ItemWrapper("Build Mode", $"{buildReport.Summary.BuildMode}"));
+            _items.Add(new ItemWrapper("Build Bundle Type", buildReport.Summary.BuildBundleType.ToString()));
             _items.Add(new ItemWrapper("Package Name", buildReport.Summary.BuildPackageName));
             _items.Add(new ItemWrapper("Package Version", buildReport.Summary.BuildPackageVersion));
+            _items.Add(new ItemWrapper("Package Note", buildReport.Summary.BuildPackageNote));
 
             _items.Add(new ItemWrapper(string.Empty, string.Empty));
             _items.Add(new ItemWrapper("Collect Settings", string.Empty));
@@ -72,11 +73,13 @@ namespace YooAsset.Editor
             _items.Add(new ItemWrapper("Enable Addressable", $"{buildReport.Summary.EnableAddressable}"));
             _items.Add(new ItemWrapper("Location To Lower", $"{buildReport.Summary.LocationToLower}"));
             _items.Add(new ItemWrapper("Include Asset GUID", $"{buildReport.Summary.IncludeAssetGUID}"));
-            _items.Add(new ItemWrapper("Ignore Default Type", $"{buildReport.Summary.IgnoreDefaultType}"));
             _items.Add(new ItemWrapper("Auto Collect Shaders", $"{buildReport.Summary.AutoCollectShaders}"));
+            _items.Add(new ItemWrapper("Ignore Rule Name", $"{buildReport.Summary.IgnoreRuleName}"));
 
             _items.Add(new ItemWrapper(string.Empty, string.Empty));
             _items.Add(new ItemWrapper("Build Params", string.Empty));
+            _items.Add(new ItemWrapper("Clear Build Cache Files", $"{buildReport.Summary.ClearBuildCacheFiles}"));
+            _items.Add(new ItemWrapper("Use Asset Dependency DB", $"{buildReport.Summary.UseAssetDependencyDB}"));
             _items.Add(new ItemWrapper("Enable Share Pack Rule", $"{buildReport.Summary.EnableSharePackRule}"));
             _items.Add(new ItemWrapper("Encryption Class Name", buildReport.Summary.EncryptionClassName));
             _items.Add(new ItemWrapper("FileNameStyle", $"{buildReport.Summary.FileNameStyle}"));

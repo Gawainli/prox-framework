@@ -11,11 +11,11 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            var succeed = await AssetModule.UpdateManifest();
-            if (succeed)
-            {
-                ChangeState<StateCreateDownloader>();
-            }
+            // var succeed = await AssetModule.UpdateManifest();
+            // if (succeed)
+            // {
+                // ChangeState<StateCreateDownloader>();
+            // }
         }
 
         public override void Exit()

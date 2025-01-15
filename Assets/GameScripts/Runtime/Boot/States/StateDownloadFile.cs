@@ -14,8 +14,8 @@ namespace ProxFramework.Base
         public override async void Enter()
         {
             Logger.Info("start download file");
-            AssetModule.downloaderOperation.OnDownloadErrorCallback = OnDownloadErrorCallback;
-            AssetModule.downloaderOperation.OnDownloadProgressCallback = OnDownloadProgress;
+            // AssetModule.downloaderOperation.OnDownloadErrorCallback = OnDownloadErrorCallback;
+            // AssetModule.downloaderOperation.OnDownloadProgressCallback = OnDownloadProgress;
             AssetModule.downloaderOperation.BeginDownload();
             await AssetModule.downloaderOperation.ToUniTask();
             if (AssetModule.downloaderOperation.Status == EOperationStatus.Succeed)

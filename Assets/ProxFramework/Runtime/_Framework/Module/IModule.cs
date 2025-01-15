@@ -2,6 +2,7 @@
 {
     public interface IModule
     {
+        // bool IsInitialized { get; }
         void Initialize(object userData = null);
 
         void Tick(float deltaTime, float unscaledDeltaTime);

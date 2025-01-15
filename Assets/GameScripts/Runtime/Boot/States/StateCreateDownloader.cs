@@ -11,14 +11,14 @@ namespace ProxFramework.Base
 
         public override void Enter()
         {
-            if (AssetModule.CreateDownloader())
-            {
-                ChangeState<StateDownloadFile>();
-            }
-            else
-            {
-                ChangeState<StateClearCache>();
-            }
+            // if (AssetModule.CreateDownloader())
+            // {
+                // ChangeState<StateDownloadFile>();
+            // }
+            // else
+            // {
+                // ChangeState<StateClearCache>();
+            // }
         }
 
         public override void Exit()
