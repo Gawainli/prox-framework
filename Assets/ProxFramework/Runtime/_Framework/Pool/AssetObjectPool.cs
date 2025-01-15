@@ -63,7 +63,7 @@ namespace ProxFramework.Pool
         {
             if (package == null)
             {
-                Logger.Error("CreatePoolAsync package is null");
+                PLogger.Error("CreatePoolAsync package is null");
                 return;
             }
 

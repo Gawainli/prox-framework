@@ -33,7 +33,7 @@ namespace ProxFramework.Base
 
                             if (FindObjectsOfType<T>().Length > 1)
                             {
-                                ProxFramework.Logger.Error("[Singleton] Something went really wrong " +
+                                ProxFramework.PLogger.Error("[Singleton] Something went really wrong " +
                                                                   " - there should never be more than 1 singleton!" +
                                                                   " Reopening the scene might fix it.");
                                 return _instance;
@@ -46,13 +46,13 @@ namespace ProxFramework.Base
                                 singleton.name = typeof(T).ToString() + " (Singleton)";
 
 
-                                ProxFramework.Logger.Info("[Singleton] An instance of " + typeof(T) +
+                                ProxFramework.PLogger.Info("[Singleton] An instance of " + typeof(T) +
                                                                  " is needed in the scene, so '" + singleton +
                                                                  "' was created with DontDestroyOnLoad.");
                             }
                             else
                             {
-                                ProxFramework.Logger.Info("[Singleton] Using instance already created: " +
+                                ProxFramework.PLogger.Info("[Singleton] Using instance already created: " +
                                                                  _instance.gameObject.name);
                             }
 

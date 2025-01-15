@@ -163,7 +163,7 @@ namespace ProxFramework.Network
             }
             catch (Exception e)
             {
-                Logger.Exception(e.ToString());
+                PLogger.Exception(e.ToString());
             }
             finally
             {

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
+using System;
 
 namespace ProxFramework.StateMachine
 {
@@ -14,6 +13,7 @@ namespace ProxFramework.StateMachine
         private readonly Dictionary<Type, State> _states;
         private State _currentState;
         private State _lastState;
+        private Dictionary<string, object> _blackboard = new();
 
         public StateMachine(object owner)
         {
@@ -34,7 +34,7 @@ namespace ProxFramework.StateMachine
             _lastState = _currentState;
             if (_currentState == null)
             {
-                Logger.Error("Start StateMachine Failed, State is Null");
+                PLogger.Error("Start StateMachine Failed, State is Null");
                 return;
             }
 
@@ -123,14 +123,14 @@ namespace ProxFramework.StateMachine
         {
             if (!isRunning)
             {
-                Logger.Error($"{name} ChangeState Failed, StateMachine is not Running");
+                PLogger.Error($"{name} ChangeState Failed, StateMachine is not Running");
                 return;
             }
 
             var state = GetState(typeof(T));
             if (state == null)
             {
-                Logger.Error($"{typeof(T)} ChangeState Failed, State is Null");
+                PLogger.Error($"{typeof(T)} ChangeState Failed, State is Null");
                 return;
             }
 
@@ -174,6 +174,32 @@ namespace ProxFramework.StateMachine
         public string GetStateInfo()
         {
             return $"{name} CurrentState: {_currentState.GetType().Name} LastState: {_lastState.GetType().Name}";
+        }
+
+        public void SetBlackboardValue(string key, object value)
+        {
+            if (!_blackboard.TryAdd(key, value))
+            {
+                _blackboard[key] = value;
+            }
+        }
+
+        public void SetBlackboardValue<T>(string key, T value)
+        {
+            if (!_blackboard.TryAdd(key, value))
+            {
+                _blackboard[key] = value;
+            }
+        }
+
+        public object GetBlackboardValue(string key)
+        {
+            return _blackboard.GetValueOrDefault(key);
+        }
+
+        public T GetBlackboardValue<T>(string key)
+        {
+            return (T)_blackboard.GetValueOrDefault(key);
         }
     }
 }

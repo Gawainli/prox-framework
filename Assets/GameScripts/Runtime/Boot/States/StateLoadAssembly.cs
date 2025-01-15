@@ -1,10 +1,9 @@
 ﻿using System.Reflection;
-using Cysharp.Threading.Tasks;
+using ProxFramework;
 using ProxFramework.Asset;
-using ProxFramework.Scene;
 using ProxFramework.StateMachine;
 
-namespace ProxFramework.Base
+namespace GameName.Runtime
 {
     public class StateLoadAssembly : State
     {
@@ -14,38 +13,38 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            Logger.Info("StateLoadAssembly");
+            PLogger.Info("StateLoadAssembly");
             var data = await AssetModule.LoadRawFileAsync("Assets/HotUpdateDll/ADF_Base.dll.bytes");
             var hotUpdate = Assembly.Load(data);
             var type = hotUpdate.GetType("HotUpdateLoader");
             var func = type.GetMethod("LoadMetadataForAOTAssemblies");
             if (func == null)
             {
-                Logger.Error("func == null");
+                PLogger.Error("func == null");
                 return;
             }
             
             var result = (bool)func.Invoke(null, null);
             if (!result)
             {
-                Logger.Error("LoadMetadataForAOTAssemblies failed");
+                PLogger.Error("LoadMetadataForAOTAssemblies failed");
             }
             
             func = type.GetMethod("LoadHotUpdateDlls");
             if (func == null)
             {
-                Logger.Error("func == null");
+                PLogger.Error("func == null");
                 return;
             }
             result = (bool)func.Invoke(null, null);
             if ( result )
             {
-                Logger.Info("LoadHotUpdateDlls success");
+                PLogger.Info("LoadHotUpdateDlls success");
                 ChangeState<StateStartGame>();
             }
             else
             {
-                Logger.Error("LoadHotUpdateDlls failed");
+                PLogger.Error("LoadHotUpdateDlls failed");
             }
         }
 

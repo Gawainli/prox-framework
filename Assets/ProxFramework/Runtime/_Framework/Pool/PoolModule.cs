@@ -73,7 +73,7 @@ namespace ProxFramework.Pool
 
             if (pool == null)
             {
-                Logger.Error($"PoolModule.Spawn: location {assetPath} not found");
+                PLogger.Error($"PoolModule.Spawn: location {assetPath} not found");
                 return null;
             }
 
@@ -131,7 +131,7 @@ namespace ProxFramework.Pool
             var cfg = userData as PoolModuleCfg;
             if (cfg == null)
             {
-                Logger.Error("PoolModule.Initialize: cfg is null");
+                PLogger.Error("PoolModule.Initialize: cfg is null");
                 return;
             }
 

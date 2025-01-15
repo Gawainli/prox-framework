@@ -2,7 +2,7 @@
 
 namespace ProxFramework.Asset
 {
-    public partial class AssetModule
+    public static partial class AssetModule
     {
         private class RemoteServices : IRemoteServices
         {

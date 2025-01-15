@@ -16,7 +16,7 @@ namespace ProxFramework.Utils
             }
             else
             {
-                Logger.Warning($"More than one single:{nameof(T)}. Destroy this game object:{gameObject.name}");
+                PLogger.Warning($"More than one single:{nameof(T)}. Destroy this game object:{gameObject.name}");
                 Destroy(gameObject);
             }
         }

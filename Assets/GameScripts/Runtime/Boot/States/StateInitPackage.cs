@@ -1,9 +1,9 @@
-﻿using ProxFramework.Asset;
-using ProxFramework.Module;
+﻿using Cysharp.Threading.Tasks;
+using ProxFramework.Asset;
+using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
-using YooAsset;
 
-namespace ProxFramework.Base
+namespace GameName.Runtime
 {
     public class StateInitPackage : State
     {
@@ -13,19 +13,16 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            // var module = ModuleCore.GetModule<AssetModule>();
-            // var succeed = await module.InitPkgAsync();
-            // if (succeed)
-            // {
-                // if (SettingUtils.playMode == EPlayMode.EditorSimulateMode || SettingUtils.playMode == EPlayMode.OfflinePlayMode || SettingUtils.playMode == EPlayMode.WebPlayMode)
-                // {
-                //     ChangeState<StateStartGame>();
-                // }
-                // else
-                // {
-                //     ChangeState<StateUpdateVersion>();
-                // }
-            // }
+            AssetModule.Initialize();
+            await AssetModule.InitPackage(AssetModule.DefaultPkgName).ToUniTask();
+            await AssetModule.InitPackage(AssetModule.DefaultRawPkgName).ToUniTask();
+
+            foreach (var packageName in SettingsUtil.GlobalSettings.assetSettings.packageNames)
+            {
+                await AssetModule.InitPackage(packageName).ToUniTask();
+            }
+
+            ChangeState<StateUpdateVersion>();
         }
 
         public override void Exit()

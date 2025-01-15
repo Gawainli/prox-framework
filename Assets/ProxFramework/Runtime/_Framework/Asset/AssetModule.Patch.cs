@@ -3,9 +3,9 @@ using YooAsset;
 
 namespace ProxFramework.Asset
 {
-    public partial class AssetModule
+    public static partial class AssetModule
     {
-        public string GetPackageVersion(string packageName = "")
+        public static string GetPackageVersion(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
@@ -13,7 +13,7 @@ namespace ProxFramework.Asset
             return package == null ? string.Empty : package.GetPackageVersion();
         }
 
-        public RequestPackageVersionOperation UpdatePackageVersionAsync(bool appendTimeTicks = false, int timeout = 60,
+        public static RequestPackageVersionOperation UpdatePackageVersionAsync(bool appendTimeTicks = false, int timeout = 60,
             string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
@@ -22,7 +22,7 @@ namespace ProxFramework.Asset
             return package.RequestPackageVersionAsync(appendTimeTicks, timeout);
         }
 
-        public UpdatePackageManifestOperation UpdatePackageManifestAsync(string packageVersion,
+        public static UpdatePackageManifestOperation UpdatePackageManifestAsync(string packageVersion,
             int timeout = 60, string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
@@ -31,7 +31,7 @@ namespace ProxFramework.Asset
             return package.UpdatePackageManifestAsync(packageVersion, timeout);
         }
 
-        public ResourceDownloaderOperation CreateResourceDownloader(string packageName = "")
+        public static ResourceDownloaderOperation CreateResourceDownloader(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
@@ -40,7 +40,7 @@ namespace ProxFramework.Asset
             return downloadOp;
         }
         
-        public ClearCacheFilesOperation ClearUnusedCacheFilesAsync(string packageName = "")
+        public static ClearCacheFilesOperation ClearUnusedCacheFilesAsync(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)

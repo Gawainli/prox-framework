@@ -13,7 +13,7 @@ namespace ProxFramework.Module
             var type = typeof(T);
             if (ModulesDict.ContainsKey(type))
             {
-                Logger.Error($"Module is already created. {type.FullName}");
+                PLogger.Error($"Module is already created. {type.FullName}");
                 return null;
             }
 

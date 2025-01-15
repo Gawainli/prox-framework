@@ -1,7 +1,10 @@
-﻿using ProxFramework.Asset;
+﻿using Cysharp.Threading.Tasks;
+using ProxFramework;
+using ProxFramework.Asset;
 using ProxFramework.StateMachine;
+using YooAsset;
 
-namespace ProxFramework.Base
+namespace GameName.Runtime
 {
     public class StateUpdateManifest : State
     {
@@ -11,15 +14,31 @@ namespace ProxFramework.Base
 
         public override async void Enter()
         {
-            // var succeed = await AssetModule.UpdateManifest();
-            // if (succeed)
-            // {
-                // ChangeState<StateCreateDownloader>();
-            // }
+            var succeed = await UpdateManifest();
+            if (succeed)
+            {
+                ChangeState<StateCreateDownloader>();
+            }
         }
 
         public override void Exit()
         {
+        }
+        
+        private async UniTask<bool> UpdateManifest()
+        {
+            foreach (var pkg in AssetModule.GetAllPackages())
+            {
+                var op = AssetModule.UpdatePackageManifestAsync(pkg.PackageName);
+                await op.ToUniTask();
+                if (op.Status == EOperationStatus.Failed)
+                {
+                    PLogger.Error($"Package {pkg.PackageName} UpdateVersion Failed : {op.Error}");
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

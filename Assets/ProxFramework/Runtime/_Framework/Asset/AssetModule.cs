@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Base;
 using ProxFramework.Runtime.Settings;
@@ -13,26 +15,26 @@ namespace ProxFramework.Asset
     {
         public void Log(string message)
         {
-            Logger.Info(message);
+            PLogger.Info(message);
         }
 
         public void Warning(string message)
         {
-            Logger.Warning(message);
+            PLogger.Warning(message);
         }
 
         public void Error(string message)
         {
-            Logger.Error(message);
+            PLogger.Error(message);
         }
 
         public void Exception(Exception exception)
         {
-            Logger.Exception(exception.ToString());
+            PLogger.Exception(exception.ToString());
         }
     }
 
-    public partial class AssetModule
+    public static partial class AssetModule
     {
         public static AssetModuleCfg cfg;
         public static DownloaderOperation downloaderOperation;
@@ -54,11 +56,12 @@ namespace ProxFramework.Asset
             }
         }
 
+        public static Dictionary<string, ResourcePackage> mapNameToResourcePackage = new();
         public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
         public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
         public static int ctsTaskId;
 
-        public void Initialize()
+        public static void Initialize()
         {
             if (!YooAssets.Initialized)
             {
@@ -74,21 +77,14 @@ namespace ProxFramework.Asset
             }
         }
 
-        public void Tick(float deltaTime, float unscaledDeltaTime)
-        {
-        }
-
-        public void Shutdown()
-        {
-        }
-
-        public InitializationOperation InitPackage(string packageName)
+        public static InitializationOperation InitPackage(string packageName)
         {
             var pkgPlayMode = PlayMode;
 #if UNITY_EDITOR
             pkgPlayMode = SettingsUtil.EditorDevSettings.GetPackageDevPlayMode(packageName);
 #endif
             var package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
+            mapNameToResourcePackage.Add(packageName, package);
 
             InitializationOperation initializationOperation = null;
             if (pkgPlayMode == EPlayMode.EditorSimulateMode)
@@ -138,7 +134,7 @@ namespace ProxFramework.Asset
             return initializationOperation;
         }
 
-        private string GetHostServerURL()
+        private static string GetHostServerURL()
         {
             var hostUrl = SettingsUtil.GlobalSettings.assetSettings.assetCdn;
             var appVersion = Application.version;
@@ -164,6 +160,29 @@ namespace ProxFramework.Asset
             return $"{hostUrl}/pc/{appVersion}";
 #endif
         }
+
+        public static ResourcePackage[] GetAllPackages()
+        {
+            return mapNameToResourcePackage.Values.ToArray();
+        }
+
+        public static ResourcePackage GetPackage(string packageName)
+        {
+            if (mapNameToResourcePackage.TryGetValue(packageName, out var package))
+            {
+                return package;
+            }
+
+            PLogger.Error($"Package {packageName} not found");
+            return null;
+        }
+
+        public static bool TryGetPackage(string packageName, out ResourcePackage package)
+        {
+            return mapNameToResourcePackage.TryGetValue(packageName, out package);
+        }
+
+
         public static T LoadAssetSync<T>(string path) where T : UnityEngine.Object
         {
             using var op = YooAssets.LoadAssetSync<T>(path);
@@ -173,7 +192,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -189,7 +208,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -204,7 +223,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -220,7 +239,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -235,7 +254,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -251,7 +270,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -267,7 +286,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -283,7 +302,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return null;
             }
         }
@@ -299,7 +318,7 @@ namespace ProxFramework.Asset
             }
             else
             {
-                Logger.Error($"{op.LastError}");
+                PLogger.Error($"{op.LastError}");
                 return default;
             }
         }

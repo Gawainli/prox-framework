@@ -1,12 +1,11 @@
 ﻿using ProxFramework.StateMachine;
 
-namespace ProxFramework.Base
+namespace GameName.Runtime
 {
-    public class StatePatchPrepare : State
+    public class StateSplash : State
     {
         public override void Init()
         {
-            
         }
 
         public override void Enter()

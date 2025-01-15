@@ -56,7 +56,7 @@ namespace ProxFramework.StateMachine
 
         public void Initialize(object userData = null)
         {
-            Logger.Info("StateMachineModule Initialize");
+            PLogger.Info("StateMachineModule Initialize");
             Initialized = true;
         }
 

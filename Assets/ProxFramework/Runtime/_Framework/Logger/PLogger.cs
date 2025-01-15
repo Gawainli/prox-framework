@@ -22,7 +22,7 @@ namespace ProxFramework
         File = 0x4
     }
 
-    public static class Logger
+    public static class PLogger
     {
         public static LogLevel filterLevel = LogLevel.Info;
         public static OutputType outputType = OutputType.Editor;

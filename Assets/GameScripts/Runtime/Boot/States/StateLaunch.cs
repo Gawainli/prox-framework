@@ -2,7 +2,7 @@
 
 namespace GameName.Runtime
 {
-    public class StateStartGame : State
+    public class StateLaunch : State
     {
         public override void Init()
         {
@@ -10,11 +10,15 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            //todo: game start logic. enter first game scene
         }
 
         public override void Exit()
         {
+        }
+
+        public override void Tick(float delta)
+        {
+            ChangeState<StateSplash>();
         }
     }
 }

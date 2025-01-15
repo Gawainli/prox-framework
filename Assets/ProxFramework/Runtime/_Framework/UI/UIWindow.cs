@@ -160,7 +160,7 @@ namespace ProxFramework.UI
             var uiPrefab = await AssetModule.LoadAssetAsync<GameObject>(assetPath);
             if (uiPrefab == null)
             {
-                Logger.Error("UIWindow Load Error: uiPrefab is null. path: " + assetPath);
+                PLogger.Error("UIWindow Load Error: uiPrefab is null. path: " + assetPath);
                 return;
             }
 
@@ -173,7 +173,7 @@ namespace ProxFramework.UI
             var uiPrefab = AssetModule.LoadAssetSync<GameObject>(assetPath);
             if (uiPrefab == null)
             {
-                Logger.Error("UIWindow Load Error: panelPrefab is null. path: " + assetPath);
+                PLogger.Error("UIWindow Load Error: panelPrefab is null. path: " + assetPath);
                 return;
             }
 
@@ -188,7 +188,7 @@ namespace ProxFramework.UI
             _canvas = _uiPanel.GetComponent<Canvas>();
             if (_canvas == null)
             {
-                Logger.Error("UIWindow Load Error: Canvas is null. name: " + panelPrefab.name);
+                PLogger.Error("UIWindow Load Error: Canvas is null. name: " + panelPrefab.name);
             }
 
             _canvas.overrideSorting = true;
@@ -219,7 +219,7 @@ namespace ProxFramework.UI
             var transform = _uiPanel.transform.Find(path);
             if (transform == null)
             {
-                Logger.Error($"{WindowName} Q Error: {path} is null");
+                PLogger.Error($"{WindowName} Q Error: {path} is null");
             }
 
             return transform.GetComponent<T>();

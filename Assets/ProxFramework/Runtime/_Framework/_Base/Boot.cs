@@ -70,7 +70,7 @@ namespace ProxFramework.Base
         {
             // SettingUtils.playMode = resPlayMode;
             Application.targetFrameRate = defaultFrameRate;
-            Logger.Info($"Boot SetSettings playMode:{resPlayMode} frameRate:{defaultFrameRate}");
+            PLogger.Info($"Boot SetSettings playMode:{resPlayMode} frameRate:{defaultFrameRate}");
         }
 
         public void Tick(float deltaTime, float unscaledDeltaTime)

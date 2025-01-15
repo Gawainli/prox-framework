@@ -30,7 +30,7 @@ namespace ProxFramework.UI
             var transform = rootTransform.Find(path);
             if (transform == null)
             {
-                Logger.Error($"Widget:{GetType().Name} Q Error: {path} is null");
+                PLogger.Error($"Widget:{GetType().Name} Q Error: {path} is null");
             }
             return transform.GetComponent<T>();
         }

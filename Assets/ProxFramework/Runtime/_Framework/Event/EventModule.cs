@@ -134,7 +134,7 @@ namespace ProxFramework.Event
 
         public void Initialize(object userData = null)
         {
-            Logger.Info("EventModule Initialize");
+            PLogger.Info("EventModule Initialize");
             Initialized = true;
         }
 

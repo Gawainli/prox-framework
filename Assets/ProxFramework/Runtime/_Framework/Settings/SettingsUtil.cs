@@ -24,13 +24,13 @@ namespace ProxFramework.Runtime.Settings
                         UnityEditor.AssetDatabase.CreateAsset(_editorDevSettings, "Assets/EditorDevSettings.asset");
                         UnityEditor.AssetDatabase.SaveAssets();
                         UnityEditor.AssetDatabase.Refresh();
-                        Logger.Warning(
+                        PLogger.Warning(
                             $"No Editor Dev Settings found in project. Created new one at Assets/EditorDevSettings.asset");
                     }
 
                     if (globalAssetPaths.Length > 1)
                     {
-                        Logger.Warning(
+                        PLogger.Warning(
                             $"More than one Editor Dev Settings found in project. We use first one. Path:{globalAssetPaths[0]}");
                     }
 
@@ -68,7 +68,7 @@ namespace ProxFramework.Runtime.Settings
             {
                 foreach (var assetPath in globalAssetPaths)
                 {
-                    Logger.Error(
+                    PLogger.Error(
                         $"Could not had Multiple {assetType}. Repeated Path: {UnityEditor.AssetDatabase.GUIDToAssetPath(assetPath)}");
                 }
 
