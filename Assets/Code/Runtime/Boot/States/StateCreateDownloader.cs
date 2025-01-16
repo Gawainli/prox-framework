@@ -13,14 +13,23 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            var downloaderOp = AssetModule.CreateResourceDownloaderForAll();
-            if (downloaderOp.TotalDownloadCount == 0)
+            var downloaderOpList = new List<ResourceDownloaderOperation>();
+            foreach (var pkg in AssetModule.GetAllPackages())
+            {
+                var op = AssetModule.CreateResourceDownloader(pkg.PackageName);
+                if (op.TotalDownloadCount > 0)
+                {
+                    downloaderOpList.Add(op);
+                }
+            }
+
+            if (downloaderOpList.Count == 0)
             {
                 ChangeState<StatePatchDone>();
             }
             else
             {
-                fsm.SetBlackboardValue("downloaderOp", downloaderOp);
+                fsm.SetBlackboardValue("totalDownloaderOp",downloaderOpList);
                 ChangeState<StateDownloadFile>();
             }
         }

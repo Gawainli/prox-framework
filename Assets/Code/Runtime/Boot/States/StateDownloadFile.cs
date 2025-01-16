@@ -8,8 +8,14 @@ namespace GameName.Runtime
 {
     public class StateDownloadFile : State
     {
+        private int _currentDownloadedCount;
         private int _totalDownloadCount;
+
+        private long _currentDownloadedBytes;
         private long _totalDownloadBytes;
+
+        private int _currentPackageDownloadCount;
+        private long _currentPackageDownloadBytes;
 
         public override void Init()
         {
@@ -17,17 +23,15 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            var downloaderOp = fsm.GetBlackboardValue<ResourceDownloaderOperation>("downloaderOp");
-            _totalDownloadCount = downloaderOp.TotalDownloadCount;
-            _totalDownloadBytes = downloaderOp.TotalDownloadBytes;
-            downloaderOp.DownloadErrorCallback = OnDownloadErrorCallback;
-            downloaderOp.DownloadUpdateCallback = OnDownloadProgress;
-            downloaderOp.DownloadFinishCallback = OnDownloadFinishCallback;
-            downloaderOp.DownloadFileBeginCallback = OnDownloadFileBeginCallback;
-            downloaderOp.BeginDownload();
-            await downloaderOp.ToUniTask();
-            
-            if (downloaderOp.Status == EOperationStatus.Succeed)
+            var downloaderOpList = fsm.GetBlackboardValue<List<ResourceDownloaderOperation>>("totalDownloaderOp");
+            foreach (var op in downloaderOpList)
+            {
+                _totalDownloadCount += op.TotalDownloadCount;
+                _totalDownloadBytes += op.TotalDownloadBytes;
+            }
+
+            var downloadResult = await BeginDownload(downloaderOpList);
+            if (downloadResult)
             {
                 ChangeState<StatePatchDone>();
             }
@@ -35,7 +39,26 @@ namespace GameName.Runtime
 
         public override void Exit()
         {
-            fsm.SetBlackboardValue("downloaderOp", null);
+        }
+
+        private async UniTask<bool> BeginDownload(List<ResourceDownloaderOperation> downloaderOpList)
+        {
+            foreach (var op in downloaderOpList)
+            {
+                op.DownloadErrorCallback = OnDownloadErrorCallback;
+                op.DownloadUpdateCallback = OnDownloadProgress;
+                op.DownloadFinishCallback = OnDownloadFinishCallback;
+                op.DownloadFileBeginCallback = OnDownloadFileBeginCallback;
+                op.BeginDownload();
+                await op;
+
+                if (op.Status != EOperationStatus.Succeed)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void OnDownloadFileBeginCallback(DownloadFileData data)
@@ -45,8 +68,13 @@ namespace GameName.Runtime
 
         private void OnDownloadFinishCallback(DownloaderFinishData data)
         {
+            _currentDownloadedCount += _currentPackageDownloadCount;
+            _currentDownloadedBytes += _currentPackageDownloadBytes;
+            _currentPackageDownloadCount = 0;
+            _currentPackageDownloadBytes = 0;
+
             PLogger.Info(
-                $"download package {data.PackageName} complete.");
+                $"download package {data.PackageName} complete: {_currentDownloadedCount}/{_totalDownloadCount}, {_currentDownloadedBytes}/{_totalDownloadBytes}");
         }
 
         public void OnDownloadErrorCallback(DownloadErrorData errorData)
@@ -56,8 +84,10 @@ namespace GameName.Runtime
 
         public void OnDownloadProgress(DownloadUpdateData updateData)
         {
+            _currentPackageDownloadCount = updateData.TotalDownloadCount;
+            _currentPackageDownloadBytes = updateData.TotalDownloadBytes;
             PLogger.Info(
-                $" download progress: {updateData.TotalDownloadCount}/{_totalDownloadCount}, {updateData.TotalDownloadBytes}/{_totalDownloadBytes}");
+                $" download progress: {_currentDownloadedCount + _currentPackageDownloadCount}/{_totalDownloadCount}, {_currentDownloadedBytes + _currentPackageDownloadBytes}/{_totalDownloadBytes}");
         }
     }
 }
