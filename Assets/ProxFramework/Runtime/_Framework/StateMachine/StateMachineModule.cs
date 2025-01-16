@@ -40,7 +40,7 @@ namespace ProxFramework.StateMachine
             _initialized = true;
         }
 
-        public static void Tick(float deltaTime, float unscaledDeltaTime)
+        public static void Tick(float deltaTime)
         {
             if (!_initialized) return;
             foreach (var machines in StateMachineDict.Values)

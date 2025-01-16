@@ -37,6 +37,7 @@ namespace ProxFramework.Asset
 
     public static partial class AssetModule
     {
+        private static bool _initialized = false;
         private static int _downloadingMaxNum;
         private static int _failedTryAgain;
         private static Dictionary<string, ResourcePackage> _mapNameToResourcePackage = new();
@@ -79,6 +80,7 @@ namespace ProxFramework.Asset
             }
 
             YooAssets.SetDefaultPackage(defaultPackage);
+            _initialized = true;
         }
 
         public static async UniTask<EOperationStatus> InitPackage(string packageName)
@@ -189,6 +191,10 @@ namespace ProxFramework.Asset
         public static bool TryGetPackage(string packageName, out ResourcePackage package)
         {
             return _mapNameToResourcePackage.TryGetValue(packageName, out package);
+        }
+
+        public static void Shutdown()
+        {
         }
 
         public static T LoadAssetSync<T>(string path) where T : UnityEngine.Object

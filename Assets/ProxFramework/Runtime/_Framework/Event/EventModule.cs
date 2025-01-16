@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProxFramework.Base;
-
-using ProxFramework.Module;
 using UnityEngine;
 
 namespace ProxFramework.Event
 {
-    public class EventModule : IModule
+    public static class EventModule
     {
         private class PostWrapper
         {
@@ -22,6 +19,8 @@ namespace ProxFramework.Event
                 message = null;
             }
         }
+
+        private static bool _initialized = false;
 
         private static readonly Dictionary<int, List<Action<IEventMessage>>> Listeners =
             new Dictionary<int, List<Action<IEventMessage>>>();
@@ -79,13 +78,6 @@ namespace ProxFramework.Event
         {
             if (Listeners.TryGetValue(eventId, out var list))
             {
-                // foreach (var listener in list)
-                // {
-                //     if (listener != null)
-                //     {
-                //         listener(msg);
-                //     }
-                // }
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
                     var listener = list[i];
@@ -102,7 +94,7 @@ namespace ProxFramework.Event
             var eventId = msg.GetType().GetHashCode();
             SendEvent(eventId, msg);
         }
-        
+
         public static void SendEvent<TEvent>(TEvent msg) where TEvent : IEventMessage
         {
             var eventId = typeof(TEvent).GetHashCode();
@@ -125,21 +117,26 @@ namespace ProxFramework.Event
             var eventId = msg.GetType().GetHashCode();
             PostEvent(eventId, msg);
         }
-        
+
         public static void PostEvent<TEvent>(TEvent msg) where TEvent : IEventMessage
         {
             var eventId = typeof(TEvent).GetHashCode();
             PostEvent(eventId, msg);
         }
 
-        public void Initialize(object userData = null)
+        public static void Initialize(object userData = null)
         {
             PLogger.Info("EventModule Initialize");
-            Initialized = true;
+            _initialized = true;
         }
 
-        public void Tick(float deltaTime, float unscaledDeltaTime)
+        public static void Tick(float deltaTime)
         {
+            if (!_initialized)
+            {
+                return;
+            }
+
             for (int i = PostList.Count - 1; i >= 0; i--)
             {
                 var wrapper = PostList[i];
@@ -152,12 +149,9 @@ namespace ProxFramework.Event
             }
         }
 
-        public void Shutdown()
+        public static void Shutdown()
         {
             ClearALlListener();
         }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
     }
 }
