@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using ProxFramework.Asset;
+﻿using ProxFramework.Asset;
 using ProxFramework.StateMachine;
 
 namespace GameName.Runtime
@@ -14,7 +13,7 @@ namespace GameName.Runtime
         {
             foreach (var pkg in AssetModule.GetAllPackages())
             {
-                await AssetModule.ClearUnusedCacheFilesAsync(pkg.PackageName).ToUniTask();
+                await AssetModule.ClearUnusedCacheFilesAsync(pkg.PackageName);
             }
 
 #if ENABLE_HYBRIDCLR

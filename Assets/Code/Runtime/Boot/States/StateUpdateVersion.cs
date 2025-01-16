@@ -30,14 +30,13 @@ namespace GameName.Runtime
         {
             foreach (var pkg in AssetModule.GetAllPackages())
             {
-                var op = AssetModule.UpdatePackageVersionAsync(true, 60, pkg.PackageName);
-                await op.ToUniTask();
+                var op = await AssetModule.UpdatePackageVersionAsync(true, 60, pkg.PackageName);
                 if (op.Status == EOperationStatus.Failed)
                 {
                     PLogger.Error($"Package {pkg.PackageName} UpdateVersion Failed : {op.Error}");
                     return false;
                 }
-                
+
                 fsm.SetBlackboardValue(op.PackageName, op.PackageVersion);
             }
 

@@ -8,6 +8,8 @@ namespace ProxFramework.Runtime.Settings
         public string scriptVersion;
         public string preloadTags;
         public string assetCdn;
+        public int maxDownloadingNum;
+        public int failedTryAgain;
         public string defaultPackageName;
         public string defaultRawPackageName;
         public string[] packageNames;

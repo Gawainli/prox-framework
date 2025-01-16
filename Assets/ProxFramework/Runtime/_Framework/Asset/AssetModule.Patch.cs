@@ -13,22 +13,27 @@ namespace ProxFramework.Asset
             return package == null ? string.Empty : package.GetPackageVersion();
         }
 
-        public static RequestPackageVersionOperation UpdatePackageVersionAsync(bool appendTimeTicks = false, int timeout = 60,
+        public static async UniTask<RequestPackageVersionOperation> UpdatePackageVersionAsync(bool appendTimeTicks = false, int timeout = 60,
+            
             string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
                 : YooAssets.GetPackage(packageName);
-            return package.RequestPackageVersionAsync(appendTimeTicks, timeout);
+            var op = package.RequestPackageVersionAsync(appendTimeTicks, timeout);
+            await op.ToUniTask(cancellationToken: CtsToken);
+            return op;
         }
 
-        public static UpdatePackageManifestOperation UpdatePackageManifestAsync(string packageVersion,
+        public static async UniTask<UpdatePackageManifestOperation> UpdatePackageManifestAsync(string packageVersion,
             int timeout = 60, string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
                 : YooAssets.GetPackage(packageName);
-            return package.UpdatePackageManifestAsync(packageVersion, timeout);
+            var op = package.UpdatePackageManifestAsync(packageVersion, timeout);
+            await op.ToUniTask(cancellationToken: CtsToken);
+            return op;
         }
 
         public static ResourceDownloaderOperation CreateResourceDownloader(string packageName = "")
@@ -36,16 +41,31 @@ namespace ProxFramework.Asset
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
                 : YooAssets.GetPackage(packageName);
-            var downloadOp = package.CreateResourceDownloader(downloadingMaxNum, failedTryAgain);
+            var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+            return downloadOp;
+        }
+
+        public static ResourceDownloaderOperation CreateResourceDownloaderForAll()
+        {
+            var package = YooAssets.GetPackage(DefaultPkgName);
+            var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+            foreach (var pkg in GetAllPackages())
+            {
+                if (package == pkg) continue;
+                var op = pkg.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+                downloadOp.Combine(op);
+            }
             return downloadOp;
         }
         
-        public static ClearCacheFilesOperation ClearUnusedCacheFilesAsync(string packageName = "")
+        public static async UniTask<ClearCacheFilesOperation> ClearUnusedCacheFilesAsync(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(DefaultPkgName)
                 : YooAssets.GetPackage(packageName);
-            return package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+            var op = package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+            await op.ToUniTask(cancellationToken: CtsToken);
+            return op;
         }
     }
 }

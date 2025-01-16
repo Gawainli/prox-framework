@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Base;
 using ProxFramework.Runtime.Settings;
@@ -36,10 +37,9 @@ namespace ProxFramework.Asset
 
     public static partial class AssetModule
     {
-        public static AssetModuleCfg cfg;
-        public static DownloaderOperation downloaderOperation;
-        public static int downloadingMaxNum = 10;
-        public static int failedTryAgain = 3;
+        private static int _downloadingMaxNum;
+        private static int _failedTryAgain;
+        private static Dictionary<string, ResourcePackage> _mapNameToResourcePackage = new();
 
         private static EPlayMode _playMode;
 
@@ -56,10 +56,10 @@ namespace ProxFramework.Asset
             }
         }
 
-        public static Dictionary<string, ResourcePackage> mapNameToResourcePackage = new();
-        public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
         public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
-        public static int ctsTaskId;
+        public static TaskCtsModule.CtsInfo ctsInfo;
+        public static CancellationToken CtsToken => ctsInfo.cts.Token;
+        public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
 
         public static void Initialize()
         {
@@ -68,7 +68,9 @@ namespace ProxFramework.Asset
                 YooAssets.Initialize(new ResLogger());
             }
 
-            ctsTaskId = TaskCtsModule.GetCts().id;
+            ctsInfo = TaskCtsModule.GetCts();
+            _downloadingMaxNum = SettingsUtil.GlobalSettings.assetSettings.maxDownloadingNum;
+            _failedTryAgain = SettingsUtil.GlobalSettings.assetSettings.failedTryAgain;
 
             var defaultPackage = YooAssets.TryGetPackage(DefaultPkgName);
             if (defaultPackage == null)
@@ -86,7 +88,7 @@ namespace ProxFramework.Asset
             pkgPlayMode = SettingsUtil.EditorDevSettings.GetPackageDevPlayMode(packageName);
 #endif
             var package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
-            mapNameToResourcePackage.Add(packageName, package);
+            _mapNameToResourcePackage.Add(packageName, package);
 
             InitializationOperation initializationOperation = null;
             if (pkgPlayMode == EPlayMode.EditorSimulateMode)
@@ -124,7 +126,8 @@ namespace ProxFramework.Asset
 			    string defaultHostServer = GetHostServerURL();
                 string fallbackHostServer = GetHostServerURL();
                 IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
-                createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
+                createParameters.WebServerFileSystemParameters =
+ WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
 #else
                 createParameters.WebServerFileSystemParameters =
                     FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
@@ -137,7 +140,7 @@ namespace ProxFramework.Asset
                 return EOperationStatus.Failed;
             }
 
-            await initializationOperation.ToUniTask();
+            await initializationOperation.ToUniTask(cancellationToken: ctsInfo.cts.Token);
             return initializationOperation.Status;
         }
 
@@ -169,12 +172,12 @@ namespace ProxFramework.Asset
 
         public static ResourcePackage[] GetAllPackages()
         {
-            return mapNameToResourcePackage.Values.ToArray();
+            return _mapNameToResourcePackage.Values.ToArray();
         }
 
         public static ResourcePackage GetPackage(string packageName)
         {
-            if (mapNameToResourcePackage.TryGetValue(packageName, out var package))
+            if (_mapNameToResourcePackage.TryGetValue(packageName, out var package))
             {
                 return package;
             }
@@ -185,9 +188,8 @@ namespace ProxFramework.Asset
 
         public static bool TryGetPackage(string packageName, out ResourcePackage package)
         {
-            return mapNameToResourcePackage.TryGetValue(packageName, out package);
+            return _mapNameToResourcePackage.TryGetValue(packageName, out package);
         }
-
 
         public static T LoadAssetSync<T>(string path) where T : UnityEngine.Object
         {

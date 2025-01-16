@@ -30,8 +30,7 @@ namespace GameName.Runtime
             foreach (var pkg in AssetModule.GetAllPackages())
             {
                 var pkgVersion = fsm.GetBlackboardValue<string>(pkg.PackageName);
-                var op = AssetModule.UpdatePackageManifestAsync(pkgVersion, 60, pkg.PackageName);
-                await op.ToUniTask();
+                var op = await AssetModule.UpdatePackageManifestAsync(pkgVersion, 60, pkg.PackageName);
                 if (op.Status == EOperationStatus.Failed)
                 {
                     PLogger.Error($"Package {pkg.PackageName} UpdateVersion Failed : {op.Error}");

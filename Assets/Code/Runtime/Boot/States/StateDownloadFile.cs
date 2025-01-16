@@ -11,7 +11,6 @@ namespace GameName.Runtime
         private int _totalDownloadCount;
         private long _totalDownloadBytes;
 
-
         public override void Init()
         {
         }
@@ -36,6 +35,7 @@ namespace GameName.Runtime
 
         public override void Exit()
         {
+            fsm.SetBlackboardValue("downloaderOp", null);
         }
 
         private void OnDownloadFileBeginCallback(DownloadFileData data)
