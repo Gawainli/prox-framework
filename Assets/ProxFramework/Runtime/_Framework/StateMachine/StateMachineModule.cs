@@ -1,50 +1,30 @@
 ﻿using System.Collections.Generic;
-using ProxFramework.Base;
-
-using ProxFramework.Module;
 
 namespace ProxFramework.StateMachine
 {
-    public class StateMachineModule : IModule
+    public static class StateMachineModule
     {
-        private static readonly Dictionary<string, List<StateMachine>> StateMachineDict = new Dictionary<string, List<StateMachine>>();
-        
-        public static StateMachine Create<T>(T owner, params State[] states) where T : class
-        {
-            if (owner == null)
-            {
-                return null;
-            }
+        private static bool _initialized = false;
 
-            var stateMachine = new StateMachine(owner);
-            foreach (var state in states)
-            {
-                stateMachine.AddState(state);
-            }
-            
-            RegisterStateMachine(stateMachine.name, stateMachine);
-            return stateMachine;
-        }
-        
+        private static readonly Dictionary<string, List<StateMachine>> StateMachineDict =
+            new Dictionary<string, List<StateMachine>>();
+
         public static List<StateMachine> GetStateMachine(string name)
         {
-            if (StateMachineDict.TryGetValue(name, out var machines))
-            {
-                return machines;
-            }
-            return null;
+            return StateMachineDict.GetValueOrDefault(name);
         }
-        
-        public static void RegisterStateMachine(string name, StateMachine stateMachine)
+
+        public static void RegisterStateMachine(StateMachine stateMachine)
         {
-            if (StateMachineDict.TryGetValue(name, out var machines))
+            if (!StateMachineDict.TryGetValue(stateMachine.name, out var stateMachineList))
             {
-                machines.Add(stateMachine);
-                return;
+                stateMachineList = new List<StateMachine>();
+                StateMachineDict[stateMachine.name] = stateMachineList;
             }
-            StateMachineDict.Add(name, new List<StateMachine>(){stateMachine});
+
+            stateMachineList.Add(stateMachine);
         }
-        
+
         public static void UnRegisterStateMachine(StateMachine stateMachine)
         {
             stateMachine.ClearState();
@@ -54,29 +34,27 @@ namespace ProxFramework.StateMachine
             }
         }
 
-        public void Initialize(object userData = null)
+        public static void Initialize()
         {
             PLogger.Info("StateMachineModule Initialize");
-            Initialized = true;
+            _initialized = true;
         }
 
-        public void Tick(float deltaTime, float unscaledDeltaTime)
+        public static void Tick(float deltaTime, float unscaledDeltaTime)
         {
+            if (!_initialized) return;
             foreach (var machines in StateMachineDict.Values)
             {
                 foreach (var machine in machines)
                 {
-                   machine.Tick(deltaTime); 
+                    machine.Tick(deltaTime);
                 }
             }
         }
 
-        public void Shutdown()
+        public static void Shutdown()
         {
             StateMachineDict.Clear();
         }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
     }
 }

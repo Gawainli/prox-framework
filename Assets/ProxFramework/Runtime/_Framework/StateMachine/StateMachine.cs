@@ -13,19 +13,25 @@ namespace ProxFramework.StateMachine
         private readonly Dictionary<Type, State> _states;
         private State _currentState;
         private State _lastState;
-        private Dictionary<string, object> _blackboard = new();
+        private readonly Dictionary<string, object> _blackboard = new();
 
-        public StateMachine(object owner)
+        private StateMachine(object owner, string name)
         {
             _owner = owner;
-            name = owner.GetType().Name + ".FSM";
+            this.name = name;
             _states = new Dictionary<Type, State>();
         }
 
-        ~StateMachine()
+        public static StateMachine Create(object owner, string name = "")
         {
-            _owner = null;
-            _states.Clear();
+            if (string.IsNullOrEmpty(name))
+            {
+                name = owner.GetType().Name + ".FSM";
+            }
+
+            var fsm = new StateMachine(owner, name);
+            StateMachineModule.RegisterStateMachine(fsm);
+            return fsm;
         }
 
         public void Start<T>() where T : State
