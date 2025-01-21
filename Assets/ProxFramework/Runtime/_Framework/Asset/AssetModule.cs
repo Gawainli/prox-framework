@@ -90,7 +90,7 @@ namespace ProxFramework.Asset
             pkgPlayMode = SettingsUtil.EditorDevSettings.GetPackageDevPlayMode(packageName);
 #endif
             var package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
-            _mapNameToResourcePackage.Add(packageName, package);
+            _mapNameToResourcePackage.TryAdd(packageName, package);
 
             InitializationOperation initializationOperation = null;
             if (pkgPlayMode == EPlayMode.EditorSimulateMode)
