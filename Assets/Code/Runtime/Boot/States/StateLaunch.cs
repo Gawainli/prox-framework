@@ -10,7 +10,6 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            ChangeState<StateSplash>();
         }
 
         public override void Exit()
@@ -19,6 +18,7 @@ namespace GameName.Runtime
 
         public override void Tick(float delta)
         {
+            ChangeState<StateSplash>();
         }
     }
 }

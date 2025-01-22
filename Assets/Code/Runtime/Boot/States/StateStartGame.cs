@@ -1,6 +1,9 @@
-﻿using ProxFramework.Asset;
+﻿using System;
+using Cysharp.Threading.Tasks;
+using ProxFramework.Asset;
 using ProxFramework.StateMachine;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace GameName.Runtime
 {
@@ -12,10 +15,7 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            //todo: game start logic. enter first game scene
-
-            var sp = AssetModule.LoadAssetSync<Sprite>("Assets/AssetsArt/UI/test.jpg");
-            Debug.Log("Loaded sprite: " + sp.name);
+            AssetModule.LoadSceneAsync("Assets/_Scenes/TestYoo.unity", LoadSceneMode.Additive).Forget();
         }
 
         public override void Exit()

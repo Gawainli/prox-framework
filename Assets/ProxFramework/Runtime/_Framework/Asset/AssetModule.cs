@@ -7,7 +7,6 @@ using ProxFramework.Base;
 using ProxFramework.Runtime.Settings;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using YooAsset;
 
 namespace ProxFramework.Asset
@@ -193,154 +192,23 @@ namespace ProxFramework.Asset
             return _mapNameToResourcePackage.TryGetValue(packageName, out package);
         }
 
+        public static bool TryGetContainsPackage(string assetPath, out ResourcePackage outPackage)
+        {
+            outPackage = null;
+            foreach (var package in _mapNameToResourcePackage.Values)
+            {
+                if (package.CheckLocationValid(assetPath))
+                {
+                    outPackage = package;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static void Shutdown()
         {
-        }
-
-        public static T LoadAssetSync<T>(string path) where T : UnityEngine.Object
-        {
-            using var op = YooAssets.LoadAssetSync<T>(path);
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                return op.AssetObject as T;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static async UniTask<T> LoadAssetAsync<T>(string path) where T : UnityEngine.Object
-        {
-            using var op = YooAssets.LoadAssetAsync<T>(path);
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var asset = op.AssetObject as T;
-                return asset;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static byte[] LoadRawFileSync(string path)
-        {
-            using var op = YooAssets.LoadRawFileSync(path);
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var bytes = op.GetRawFileData();
-                return bytes;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static async UniTask<byte[]> LoadRawFileAsync(string path)
-        {
-            using var op = YooAssets.LoadRawFileAsync(path);
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var bytes = op.GetRawFileData();
-                return bytes;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static string LoadTextFileSync(string path)
-        {
-            using var op = YooAssets.LoadRawFileSync(path);
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var text = op.GetRawFileText();
-                return text;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static async UniTask<string> LoadTextFileAsync(string path)
-        {
-            using var op = YooAssets.LoadRawFileAsync(path);
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var text = op.GetRawFileText();
-                return text;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-
-        public static GameObject LoadGameObjectSync(string path, Transform transform = null)
-        {
-            using var op = YooAssets.LoadAssetSync<GameObject>(path);
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var go = op.InstantiateSync(transform);
-                return go;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static async UniTask<GameObject> LoadGameObjectAsync(string path, Transform transform = null)
-        {
-            using var op = YooAssets.LoadAssetAsync<GameObject>(path);
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                var go = op.InstantiateSync(transform);
-                return go;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return null;
-            }
-        }
-
-        public static async UniTask<UnityEngine.SceneManagement.Scene> LoadSceneAsync(string path,
-            LoadSceneMode loadSceneMode = LoadSceneMode.Single)
-        {
-            var op = YooAssets.LoadSceneAsync(path, loadSceneMode);
-            await op.ToUniTask();
-            if (op.Status == EOperationStatus.Succeed)
-            {
-                return op.SceneObject;
-            }
-            else
-            {
-                PLogger.Error($"{op.LastError}");
-                return default;
-            }
-        }
-
-        public static void UnloadUnusedAssets()
-        {
-            // assetPkg.UnloadUnusedAssets();
-            GC.Collect();
         }
     }
 }

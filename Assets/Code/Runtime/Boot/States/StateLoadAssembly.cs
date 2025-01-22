@@ -14,7 +14,7 @@ namespace GameName.Runtime
         public override async void Enter()
         {
             PLogger.Info("StateLoadAssembly");
-            var data = await AssetModule.LoadRawFileAsync("Assets/HotUpdateDll/ADF_Base.dll.bytes");
+            var data = await AssetModule.LoadRawDataAsync("Assets/HotUpdateDll/ADF_Base.dll.bytes");
             var hotUpdate = Assembly.Load(data);
             var type = hotUpdate.GetType("HotUpdateLoader");
             var func = type.GetMethod("LoadMetadataForAOTAssemblies");

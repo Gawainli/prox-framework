@@ -8,15 +8,16 @@ namespace ProxFramework.Scene
 {
     public class SceneModule : IModule
     {
-        private static readonly Stack<UnityEngine.SceneManagement.Scene> _sceneStack = new Stack<UnityEngine.SceneManagement.Scene>();
-        
+        private static readonly Stack<UnityEngine.SceneManagement.Scene> _sceneStack =
+            new Stack<UnityEngine.SceneManagement.Scene>();
+
         public static async UniTask ChangeSceneAsync(string path)
         {
             await UnloadStackScene();
             var scene = await AssetModule.LoadSceneAsync(path, LoadSceneMode.Additive);
             _sceneStack.Push(scene);
         }
-        
+
         public static async UniTask UnloadStackScene()
         {
             // await UniTask.SwitchToMainThread();
@@ -25,15 +26,14 @@ namespace ProxFramework.Scene
                 await UnloadSceneAsync(curScene);
             }
         }
-        
+
         public static async UniTask UnloadSceneAsync(UnityEngine.SceneManagement.Scene scene)
         {
             // await UniTask.SwitchToMainThread();
             await SceneManager.UnloadSceneAsync(scene);
         }
-            
-        
-        
+
+
         public void Initialize(object userData = null)
         {
             Initialized = true;

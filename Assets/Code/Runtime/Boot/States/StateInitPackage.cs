@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
-using ProxFramework;
+﻿using ProxFramework;
 using ProxFramework.Asset;
 using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
@@ -16,7 +14,6 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            AssetModule.Initialize();
             var status = await AssetModule.InitPackage(AssetModule.DefaultPkgName);
             if (status == EOperationStatus.Failed)
             {
