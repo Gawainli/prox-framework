@@ -1,53 +1,37 @@
 ﻿using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Asset;
-using ProxFramework.Module;
 using UnityEngine.SceneManagement;
 
 namespace ProxFramework.Scene
 {
-    public class SceneModule : IModule
+    public class SceneModule
     {
-        private static readonly Stack<UnityEngine.SceneManagement.Scene> _sceneStack =
-            new Stack<UnityEngine.SceneManagement.Scene>();
+        private static Stack<UnityEngine.SceneManagement.Scene> _sceneStack = new();
 
-        public static async UniTask ChangeSceneAsync(string path)
+        public static async UniTask PushSceneAsync(string location)
         {
-            await UnloadStackScene();
-            var scene = await AssetModule.LoadSceneAsync(path, LoadSceneMode.Additive);
+            var scene = await AssetModule.LoadSceneAsync(location, LoadSceneMode.Additive);
             _sceneStack.Push(scene);
         }
 
-        public static async UniTask UnloadStackScene()
+        public static async UniTask ChangeTopAsync(string location)
         {
-            // await UniTask.SwitchToMainThread();
+            await PopSceneAsync();
+            await PushSceneAsync(location);
+        }
+
+        public static async UniTask PopSceneAsync()
+        {
             if (_sceneStack.TryPop(out var curScene))
             {
                 await UnloadSceneAsync(curScene);
             }
         }
 
-        public static async UniTask UnloadSceneAsync(UnityEngine.SceneManagement.Scene scene)
+        private static async UniTask UnloadSceneAsync(UnityEngine.SceneManagement.Scene scene)
         {
-            // await UniTask.SwitchToMainThread();
-            await SceneManager.UnloadSceneAsync(scene);
+            await AssetModule.UnloadSceneAsync(scene);
         }
-
-
-        public void Initialize(object userData = null)
-        {
-            Initialized = true;
-        }
-
-        public void Tick(float deltaTime, float unscaledDeltaTime)
-        {
-        }
-
-        public void Shutdown()
-        {
-        }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
     }
 }
