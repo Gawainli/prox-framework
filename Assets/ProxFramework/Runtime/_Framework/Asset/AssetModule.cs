@@ -48,9 +48,9 @@ namespace ProxFramework.Asset
             get
             {
 #if UNITY_EDITOR
-                _playMode = SettingsUtil.EditorDevSettings.playMode;
+                _playMode = SettingsUtil.EditorDevSettings.assetPlayMode;
 #else
-                playMode = SettingsUtil.GlobalSettings.assetSettings.playMode;
+                _playMode = SettingsUtil.GlobalSettings.assetPlayMode;
 #endif
                 return _playMode;
             }

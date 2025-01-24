@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,154 +9,171 @@ namespace ProxFramework.Asset
 {
     public static partial class AssetModule
     {
-        private static Dictionary<string, AssetHandle> _mapLocationToAssetHandle = new();
-        private static Dictionary<string, RawFileHandle> _mapLocationToRawFileHandle = new();
-        private static Dictionary<object, HandleBase> _mapAssetObjectToHandle = new();
+        private static Dictionary<string, HandleBase> _mapLocationToHandle = new();
+        private static Dictionary<object, HandleBase> _mapObjectToHandle = new();
+
+        private static Dictionary<GameObject, object> _mapInstanceObjectToAssetObject = new();
+        private static Dictionary<string, SceneHandle> _mapSceneToHandle = new();
+
+        private static T GetHandleSync<T>(string location) where T : HandleBase
+        {
+            if (_mapLocationToHandle.TryGetValue(location, out var handle))
+            {
+                return handle as T;
+            }
+
+            if (!TryGetContainsPackage(location, out var package))
+            {
+                return null;
+            }
+
+            if (typeof(T) == typeof(AssetHandle))
+            {
+                var assetHandle = package.LoadAssetSync(location);
+                _mapLocationToHandle.Add(location, assetHandle);
+                return assetHandle as T;
+            }
+
+            if (typeof(T) == typeof(RawFileHandle))
+            {
+                var rawFileHandle = package.LoadRawFileSync(location);
+                _mapLocationToHandle.Add(location, rawFileHandle);
+                return rawFileHandle as T;
+            }
+
+            return null;
+        }
+
+        private static T GetHandleAsync<T>(string location) where T : HandleBase
+        {
+            if (_mapLocationToHandle.TryGetValue(location, out var handle))
+            {
+                return handle as T;
+            }
+
+            if (!TryGetContainsPackage(location, out var package))
+            {
+                return null;
+            }
+
+            if (typeof(T) == typeof(AssetHandle))
+            {
+                var assetHandle = package.LoadAssetAsync(location);
+                _mapLocationToHandle.Add(location, assetHandle);
+                return assetHandle as T;
+            }
+
+            if (typeof(T) == typeof(RawFileHandle))
+            {
+                var rawFileHandle = package.LoadRawFileAsync(location);
+                _mapLocationToHandle.Add(location, rawFileHandle);
+                return rawFileHandle as T;
+            }
+
+            return null;
+        }
 
         public static T LoadAssetSync<T>(string location) where T : UnityEngine.Object
         {
-            var handle = _mapLocationToAssetHandle.GetValueOrDefault(location);
-            if (handle == null)
+            var assetHandle = GetHandleSync<AssetHandle>(location);
+            if (!assetHandle.IsDone)
             {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-
-                handle = package.LoadAssetSync(location);
-                _mapLocationToAssetHandle.Add(location, handle);
+                assetHandle.WaitForAsyncComplete();
             }
 
-            if (!handle.IsDone)
-            {
-                handle.WaitForAsyncComplete();
-            }
-
-            return handle.AssetObject as T;
+            _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
+            return assetHandle.AssetObject as T;
         }
 
         public static async UniTask<T> LoadAssetAsync<T>(string location)
             where T : UnityEngine.Object
         {
-            var handle = _mapLocationToAssetHandle.GetValueOrDefault(location);
-            if (handle == null)
-            {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-            
-                handle = package.LoadAssetAsync(location);
-                _mapLocationToAssetHandle.Add(location, handle);
-            }
-            
-            await handle.ToUniTask();
-            _mapAssetObjectToHandle.TryAdd(handle.AssetObject, handle);
-            return handle.AssetObject as T;
-
-            // if (!TryGetContainsPackage(location, out var package))
-            // {
-            //     return null;
-            // }
-            //
-            // using var handle = package.LoadAssetAsync<T>(location);
-            // await UniTask.WaitForSeconds(1);
-            // await handle.ToUniTask();
-            // return handle.AssetObject as T;
+            var assetHandle = GetHandleAsync<AssetHandle>(location);
+            await assetHandle.ToUniTask();
+            _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
+            return assetHandle.AssetObject as T;
         }
 
         public static byte[] LoadRawFileSync(string location)
         {
-            var handle = _mapLocationToRawFileHandle.GetValueOrDefault(location);
-            if (handle == null)
+            var rawFileHandle = GetHandleSync<RawFileHandle>(location);
+            if (!rawFileHandle.IsDone)
             {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-
-                handle = package.LoadRawFileSync(location);
-                _mapLocationToRawFileHandle.Add(location, handle);
+                rawFileHandle.WaitForAsyncComplete();
             }
 
-            if (!handle.IsDone)
-            {
-                handle.WaitForAsyncComplete();
-            }
-
-            return handle.GetRawFileData();
+            return rawFileHandle.GetRawFileData();
         }
 
         public static async UniTask<byte[]> LoadRawDataAsync(string location)
         {
-            var handle = _mapLocationToRawFileHandle.GetValueOrDefault(location);
-            if (handle == null)
-            {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-
-                handle = package.LoadRawFileAsync(location);
-                _mapLocationToRawFileHandle.Add(location, handle);
-            }
-
-            await handle.ToUniTask();
-            return handle.GetRawFileData();
+            var rawFileHandle = GetHandleAsync<RawFileHandle>(location);
+            await rawFileHandle.ToUniTask();
+            return rawFileHandle.GetRawFileData();
         }
 
         public static string LoadTextFileSync(string location)
         {
-            var handle = _mapLocationToRawFileHandle.GetValueOrDefault(location);
-            if (handle == null)
+            var rawFileHandle = GetHandleSync<RawFileHandle>(location);
+            if (!rawFileHandle.IsDone)
             {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-
-                handle = package.LoadRawFileSync(location);
-                _mapLocationToRawFileHandle.Add(location, handle);
+                rawFileHandle.WaitForAsyncComplete();
             }
 
-            if (!handle.IsDone)
-            {
-                handle.WaitForAsyncComplete();
-            }
-
-            return handle.GetRawFileText();
+            return rawFileHandle.GetRawFileText();
         }
 
         public static async UniTask<string> LoadTextFileAsync(string location)
         {
-            var handle = _mapLocationToRawFileHandle.GetValueOrDefault(location);
-            if (handle == null)
-            {
-                if (!TryGetContainsPackage(location, out var package))
-                {
-                    return null;
-                }
-
-                handle = package.LoadRawFileAsync(location);
-                _mapLocationToRawFileHandle.Add(location, handle);
-            }
-
-            await handle.ToUniTask();
-            return handle.GetRawFileText();
+            var rawFileHandle = GetHandleAsync<RawFileHandle>(location);
+            await rawFileHandle.ToUniTask();
+            return rawFileHandle.GetRawFileText();
         }
 
 
         public static GameObject InstantiateGameObjectSync(string location, Transform parentTransform = null,
             bool stayWorld = false)
         {
-            var gameObject = LoadAssetSync<GameObject>(location);
-            return gameObject == null ? null : UnityEngine.Object.Instantiate(gameObject, parentTransform, stayWorld);
+            var assetGameObject = LoadAssetSync<GameObject>(location);
+            if (assetGameObject == null)
+            {
+                return null;
+            }
+
+            var instantiatedGameObject = UnityEngine.Object.Instantiate(assetGameObject, parentTransform, stayWorld);
+            _mapInstanceObjectToAssetObject.Add(instantiatedGameObject, assetGameObject);
+            return instantiatedGameObject;
         }
 
-        public static async UniTask<GameObject> InstantiateGameObjectAsync(string path, Transform transform = null)
+        public static async UniTask<GameObject> InstantiateGameObjectAsync(string location,
+            Transform parentTransform = null)
+        {
+            var result = await InstantiateMultiGameObjectAsync(location, 1, parentTransform);
+            if (result == null || result.Length == 0)
+            {
+                return null;
+            }
+
+            return result[0];
+        }
+
+        public static async UniTask<GameObject[]> InstantiateMultiGameObjectAsync(string path, int count = 1,
+            Transform transform = null)
         {
             var gameObject = await LoadAssetAsync<GameObject>(path);
-            return gameObject == null ? null : UnityEngine.Object.Instantiate(gameObject, transform);
+            if (gameObject == null)
+            {
+                return null;
+            }
+
+            var op = UnityEngine.Object.InstantiateAsync(gameObject, count, transform);
+            await op.ToUniTask();
+            foreach (var gameObj in op.Result)
+            {
+                _mapInstanceObjectToAssetObject.Add(gameObj, gameObject);
+            }
+
+            return op.Result;
         }
 
         public static async UniTask<UnityEngine.SceneManagement.Scene> LoadSceneAsync(string location,
@@ -168,29 +185,70 @@ namespace ProxFramework.Asset
                 return new UnityEngine.SceneManagement.Scene();
             }
 
+            var sceneName = Path.GetFileNameWithoutExtension(location);
+            if (_mapSceneToHandle.ContainsKey(sceneName))
+            {
+                PLogger.Warning($"Scene {sceneName} already loaded.");
+                return new UnityEngine.SceneManagement.Scene();
+            }
+
             var handle = package.LoadSceneAsync(location, loadSceneMode);
             await handle.ToUniTask();
-            PLogger.Info($"LoadSceneAsync {location} success.");
+            _mapSceneToHandle.Add(sceneName, handle);
             return handle.SceneObject;
+        }
+
+        public static async UniTask UnloadSceneAsync(UnityEngine.SceneManagement.Scene scene)
+        {
+            await UnloadSceneAsync(scene.name);
+        }
+
+        public static async UniTask UnloadSceneAsync(string sceneName)
+        {
+            if (_mapSceneToHandle.TryGetValue(sceneName, out var handle))
+            {
+                await handle.UnloadAsync();
+                _mapSceneToHandle.Remove(sceneName);
+            }
         }
 
         public static void ReleaseAsset(string location)
         {
-            var handle = _mapLocationToAssetHandle.GetValueOrDefault(location);
+            var handle = _mapLocationToHandle.GetValueOrDefault(location);
             if (handle == null)
             {
                 PLogger.Warning($"Cannot find package by location:{location}");
                 return;
             }
+
             handle.Release();
-            _mapLocationToAssetHandle.Remove(location);
+            _mapLocationToHandle.Remove(location);
+        }
+
+        public static void ReleaseGameObject(GameObject gameObject)
+        {
+            if (gameObject == null)
+            {
+                return;
+            }
+
+            UnityEngine.Object.Destroy(gameObject);
+            if (_mapInstanceObjectToAssetObject.TryGetValue(gameObject, out var assetObject))
+            {
+                ReleaseAsset(assetObject);
+            }
         }
 
         public static void ReleaseAsset(object assetObject)
         {
-            var handle = _mapAssetObjectToHandle.GetValueOrDefault(assetObject);
+            if (assetObject == null)
+            {
+                return;
+            }
+
+            var handle = _mapObjectToHandle.GetValueOrDefault(assetObject);
             handle?.Release();
-            _mapAssetObjectToHandle.Remove(assetObject);
+            _mapObjectToHandle.Remove(assetObject);
         }
 
         public static async UniTask UnloadUnusedAssets()
@@ -198,10 +256,19 @@ namespace ProxFramework.Asset
             foreach (var pkg in _mapNameToResourcePackage.Values)
             {
                 await pkg.UnloadUnusedAssetsAsync();
-                // await pkg.UnloadAllAssetsAsync();
             }
-            // await Resources.UnloadUnusedAssets();
+
             PLogger.Info($"UnloadUnusedAssets completed.");
+        }
+
+        public static async UniTask ForceUnloadAllAssets()
+        {
+            foreach (var pkg in _mapNameToResourcePackage.Values)
+            {
+                await pkg.UnloadAllAssetsAsync();
+            }
+
+            PLogger.Info($"UnloadAllAssets completed.");
         }
     }
 }
