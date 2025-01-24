@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60
-  playMode: 0
+  assetPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
     preloadTags: 
     assetCdn: http://127.0.0.1
+    maxDownloadingNum: 0
+    failedTryAgain: 0
     defaultPackageName: DefaultPackage
     defaultRawPackageName: RawPackage
     packageNames: []

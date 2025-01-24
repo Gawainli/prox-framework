@@ -37,14 +37,6 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-      - CollectPath: Assets/AssetsArt 1
-        CollectorGUID: 4bbce8cae1cc7494ba8c24257edcd15e
-        CollectorType: 0
-        AddressRuleName: AddressDisable
-        PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
-        AssetTags: 
-        UserData: 
       - CollectPath: Assets/_Scenes
         CollectorGUID: 3f5ed0238e316a6468cab06518245531
         CollectorType: 0

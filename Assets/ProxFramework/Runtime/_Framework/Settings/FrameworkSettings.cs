@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using YooAsset;
 
 namespace ProxFramework.Runtime.Settings
@@ -7,7 +8,7 @@ namespace ProxFramework.Runtime.Settings
     public class FrameworkSettings : ScriptableObject
     {
         public int targetFrameRate = 60;
-        public EPlayMode playMode;
+        public EPlayMode assetPlayMode;
         public AssetSettings assetSettings;
         public HCLRSettings hclrSettings;
     }
