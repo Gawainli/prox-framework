@@ -23,7 +23,7 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            var downloaderOpList = fsm.GetBlackboardValue<List<ResourceDownloaderOperation>>("totalDownloaderOp");
+            var downloaderOpList = fsm.Blackboard.GetObjectValue<List<ResourceDownloaderOperation>>("totalDownloaderOp");
             foreach (var op in downloaderOpList)
             {
                 _totalDownloadCount += op.TotalDownloadCount;

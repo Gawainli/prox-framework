@@ -37,7 +37,7 @@ namespace GameName.Runtime
                     return false;
                 }
 
-                fsm.SetBlackboardValue(op.PackageName, op.PackageVersion);
+                fsm.Blackboard.SetStringValue(op.PackageName, op.PackageVersion);
             }
 
             return true;

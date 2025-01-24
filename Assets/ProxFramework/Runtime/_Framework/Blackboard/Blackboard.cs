@@ -3,93 +3,103 @@ using System.Collections.Generic;
 
 namespace ProxFramework.Blackboard
 {
-    public class Blackboard
+    public partial class Blackboard
     {
-        public Action onFlush;
+        public string name;
+        private readonly int _capacity;
+        private readonly Dictionary<string, BbItem> _mapKeyNameToBbItems = new();
+        private Queue<BbItem> _queueBbItems;
 
-        private readonly bool _useBuffer = false;
+        private static List<WeakReference<Blackboard>> _referenceBoards = new();
 
-        private readonly Dictionary<string, BlackboardValue> _valueByName = new Dictionary<string, BlackboardValue>();
-
-        private readonly Dictionary<string, BlackboardValue> _valueByNameBuffer =
-            new Dictionary<string, BlackboardValue>();
-
-        public Blackboard(bool useBuffer = false)
+        public Blackboard(string name, int capacity = 100)
         {
-            _useBuffer = useBuffer;
-        }
+            this.name = name;
+            _capacity = capacity;
+            _queueBbItems = new Queue<BbItem>(_capacity);
 
-        public bool TryAddNumberValue(string key, float value)
-        {
-            if (_useBuffer)
+            for (var i = 0; i < _capacity; i++)
             {
-                return _valueByNameBuffer.TryAdd(key,
-                    new BlackboardValue { NumberValue = value, Type = ValueType.Number });
+                _queueBbItems.Enqueue(new BbItem());
             }
 
-            return _valueByName.TryAdd(key, new BlackboardValue { NumberValue = value, Type = ValueType.Number });
+            _referenceBoards.Add(new WeakReference<Blackboard>(this));
         }
-        
+
+        private BbItem GetBbItem()
+        {
+            if (_queueBbItems.Count == 0)
+            {
+                for (var i = 0; i < _capacity; i++)
+                {
+                    _queueBbItems.Enqueue(new BbItem());
+                }
+            }
+
+            return _queueBbItems.Dequeue();
+        }
+
         public bool HasKey(string key)
         {
-            return _valueByName.ContainsKey(key);
+            return _mapKeyNameToBbItems.ContainsKey(key);
         }
 
         public void SetNumberValue(string key, float value)
         {
-            if (_useBuffer)
+            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
             {
-                _valueByNameBuffer[key].NumberValue = value;
+                outItem.NumberValue = value;
             }
             else
             {
-                _valueByName[key].NumberValue = value;
+                var bbItem = GetBbItem();
+                bbItem.NumberValue = value;
+                _mapKeyNameToBbItems.Add(key, bbItem);
             }
         }
 
         public float GetNumberValue(string key)
         {
-            if (_valueByName.TryGetValue(key, out var blackboardValue) && blackboardValue.Type == ValueType.Number)
+            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
             {
-                return blackboardValue.NumberValue;
+                return outItem.NumberValue;
             }
 
-            // LogModule.Warning($"Blackboard.GetNumberValue: key {key} not found, return 0");
             return 0;
-        }
-
-        public bool TryAddObjectValue(string key, object value)
-        {
-            if (_useBuffer)
-            {
-                return _valueByNameBuffer.TryAdd(key,
-                    new BlackboardValue { ObjectValue = value, Type = ValueType.Object });
-            }
-
-            return _valueByName.TryAdd(key, new BlackboardValue { ObjectValue = value, Type = ValueType.Object });
         }
 
         public void SetObjectValue(string key, object value)
         {
-            if (_useBuffer)
+            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
             {
-                _valueByNameBuffer[key].ObjectValue = value;
+                outItem.ObjectValue = value;
             }
             else
             {
-                _valueByName[key].ObjectValue = value;
+                var bbItem = GetBbItem();
+                bbItem.ObjectValue = value;
+                _mapKeyNameToBbItems.Add(key, bbItem);
             }
         }
 
         public object GetObjectValue(string key)
         {
-            if (_valueByName.TryGetValue(key, out var blackboardValue) && blackboardValue.Type == ValueType.Object)
+            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
             {
-                return blackboardValue.ObjectValue;
+                return outItem.ObjectValue;
             }
 
-            // LogModule.Error($"Blackboard.GetObjectValue: key {key} not found, return null");
             return null;
+        }
+
+        public void SetStringValue(string key, string value)
+        {
+            SetObjectValue(key, value);
+        }
+
+        public string GetStringValue(string key)
+        {
+            return GetObjectValue<string>(key);
         }
 
         public T GetObjectValue<T>(string key)
@@ -99,48 +109,45 @@ namespace ProxFramework.Blackboard
 
         public void RemoveValue(string key)
         {
-            _valueByName.Remove(key);
-            if (_useBuffer)
-            {
-                _valueByNameBuffer.Remove(key);
-            }
+            if (!_mapKeyNameToBbItems.Remove(key, out var bbItem)) return;
+            bbItem.Clear();
+            _queueBbItems.Enqueue(bbItem);
         }
 
-        public void Flush()
+        public void ClearAll()
         {
-            if (!_useBuffer)
+            foreach (var pair in _mapKeyNameToBbItems)
             {
-                return;
+                pair.Value.Clear();
+                _queueBbItems.Enqueue(pair.Value);
             }
 
-            foreach (var pair in _valueByNameBuffer)
-            {
-                _valueByName[pair.Key] = pair.Value;
-            }
-
-            onFlush?.Invoke();
-
-            _valueByNameBuffer.Clear();
-        }
-
-        public void Clear()
-        {
-            _valueByName.Clear();
-            _valueByNameBuffer.Clear();
+            _mapKeyNameToBbItems.Clear();
         }
 
         public override string ToString()
         {
-            var str = $"Blackboard: {_valueByName.Count} items\n";
-            foreach (var pair in _valueByName)
+            var str = $"Blackboard {name}: {_mapKeyNameToBbItems.Count} items\n";
+            foreach (var pair in _mapKeyNameToBbItems)
             {
-                var value = pair.Value.Type == ValueType.Number
-                    ? pair.Value.NumberValue.ToString()
-                    : pair.Value.ObjectValue.GetType().ToString();
-                str += $"{pair.Key}:{value}\n";
+                str += $"{pair.Key} = {pair.Value}\n";
             }
 
             return str;
+        }
+
+        public static IEnumerable<Blackboard> GetAllBoards()
+        {
+            List<Blackboard> aliveBoards = new();
+            foreach (var reference in _referenceBoards)
+            {
+                if (reference.TryGetTarget(out var board))
+                {
+                    aliveBoards.Add(board);
+                }
+            }
+
+            return aliveBoards;
         }
     }
 }

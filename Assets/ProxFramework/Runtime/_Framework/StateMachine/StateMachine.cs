@@ -13,13 +13,15 @@ namespace ProxFramework.StateMachine
         private readonly Dictionary<Type, State> _states;
         private State _currentState;
         private State _lastState;
-        private readonly Dictionary<string, object> _blackboard = new();
+
+        public Blackboard.Blackboard Blackboard { get; }
 
         private StateMachine(object owner, string name)
         {
             _owner = owner;
             this.name = name;
             _states = new Dictionary<Type, State>();
+            Blackboard = new Blackboard.Blackboard($"{name}.Blackboard");
         }
 
         public static StateMachine Create(object owner, string name = "")
@@ -180,24 +182,6 @@ namespace ProxFramework.StateMachine
         public string GetStateInfo()
         {
             return $"{name} CurrentState: {_currentState.GetType().Name} LastState: {_lastState.GetType().Name}";
-        }
-
-        public void SetBlackboardValue(string key, object value)
-        {
-            if (!_blackboard.TryAdd(key, value))
-            {
-                _blackboard[key] = value;
-            }
-        }
-
-        public object GetBlackboardValue(string key)
-        {
-            return _blackboard.GetValueOrDefault(key);
-        }
-
-        public T GetBlackboardValue<T>(string key)
-        {
-            return (T)_blackboard.GetValueOrDefault(key);
         }
     }
 }
