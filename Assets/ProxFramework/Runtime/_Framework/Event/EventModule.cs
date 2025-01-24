@@ -1,157 +1,166 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Text;
+using Cysharp.Threading.Tasks;
 
 namespace ProxFramework.Event
 {
     public static class EventModule
     {
-        private class PostWrapper
+        private sealed class EventQueue
         {
-            public int postFrame;
-            public int eventId;
-            public IEventMessage message;
+            public readonly Queue<IEvent> events = new();
+            public readonly Dictionary<Type, List<Func<IEvent, UniTask>>> eventHandlers = new();
+        }
 
-            public void Recycle()
+        private static EventQueue _eventQueue;
+        private static bool _initialized;
+
+        public static void Subscribe<T>(Action<T> handler) where T : IEvent
+        {
+            var wrapper = new Func<T, UniTask>(e =>
             {
-                postFrame = 0;
-                eventId = 0;
-                message = null;
+                handler(e);
+                return UniTask.CompletedTask;
+            });
+
+            InternalSubscribe(wrapper);
+        }
+
+        public static void Subscribe<T>(Func<T, UniTask> handler) where T : IEvent
+        {
+            InternalSubscribe(handler);
+        }
+
+        public static void Unsubscribe<T>(Action<T> handler) where T : IEvent
+        {
+            var type = typeof(T);
+            if (!_eventQueue.eventHandlers.TryGetValue(type, out var handlers))
+            {
+                return;
             }
+
+            var wrapper = new Func<IEvent, UniTask>(e =>
+            {
+                handler((T)e);
+                return UniTask.CompletedTask;
+            });
+
+            handlers.Remove(wrapper);
         }
 
-        private static bool _initialized = false;
-
-        private static readonly Dictionary<int, List<Action<IEventMessage>>> Listeners =
-            new Dictionary<int, List<Action<IEventMessage>>>();
-
-        private static readonly List<PostWrapper> PostList = new List<PostWrapper>();
-
-        public static void AddListener(int eventId, Action<IEventMessage> listener)
+        public static void UnsubscribeAll<T>() where T : IEvent
         {
-            if (Listeners.TryGetValue(eventId, out var list))
+            var type = typeof(T);
+            if (!_eventQueue.eventHandlers.TryGetValue(type, out var handlers))
             {
-                list.Add(listener);
+                return;
             }
-            else
+
+            handlers.Clear();
+        }
+
+        public static void Unsubscribe<T>(Func<T, UniTask> handler) where T : IEvent
+        {
+            var type = typeof(T);
+            if (!_eventQueue.eventHandlers.TryGetValue(type, out var handlers))
             {
-                list = new List<Action<IEventMessage>>();
-                list.Add(listener);
-                Listeners.Add(eventId, list);
+                return;
             }
+
+            handlers.RemoveAll(h =>
+                h.Target == handler.Target && h.Method.Name == handler.Method.Name
+            );
         }
 
-        public static void AddListener<TEvent>(Action<IEventMessage> listener) where TEvent : IEventMessage
+        public static void Publish<T>(T message) where T : IEvent
         {
-            var type = typeof(TEvent);
-            AddListener(type.GetHashCode(), listener);
+            _eventQueue.events.Enqueue(message);
         }
 
-        public static void RemoveListener(int eventId, Action<IEventMessage> listener)
-        {
-            if (Listeners.TryGetValue(eventId, out var list))
-            {
-                if (listener != null)
-                {
-                    list.Remove(listener);
-                }
-                else
-                {
-                    list.Clear();
-                }
-            }
-        }
-
-        public static void RemoveListener<TEvent>(Action<IEventMessage> listener = null) where TEvent : IEventMessage
-        {
-            var type = typeof(TEvent);
-            RemoveListener(type.GetHashCode(), listener);
-        }
-
-        public static void ClearALlListener()
-        {
-            Listeners.Clear();
-            PostList.Clear();
-        }
-
-        public static void SendEvent(int eventId, IEventMessage msg)
-        {
-            if (Listeners.TryGetValue(eventId, out var list))
-            {
-                for (int i = list.Count - 1; i >= 0; i--)
-                {
-                    var listener = list[i];
-                    if (listener != null)
-                    {
-                        listener(msg);
-                    }
-                }
-            }
-        }
-
-        public static void SendEvent(IEventMessage msg)
-        {
-            var eventId = msg.GetType().GetHashCode();
-            SendEvent(eventId, msg);
-        }
-
-        public static void SendEvent<TEvent>(TEvent msg) where TEvent : IEventMessage
-        {
-            var eventId = typeof(TEvent).GetHashCode();
-            SendEvent(eventId, msg);
-        }
-
-        public static void PostEvent(int eventId, IEventMessage msg)
-        {
-            var wrapper = new PostWrapper
-            {
-                postFrame = Time.frameCount,
-                eventId = eventId,
-                message = msg
-            };
-            PostList.Add(wrapper);
-        }
-
-        public static void PostEvent(IEventMessage msg)
-        {
-            var eventId = msg.GetType().GetHashCode();
-            PostEvent(eventId, msg);
-        }
-
-        public static void PostEvent<TEvent>(TEvent msg) where TEvent : IEventMessage
-        {
-            var eventId = typeof(TEvent).GetHashCode();
-            PostEvent(eventId, msg);
-        }
-
-        public static void Initialize(object userData = null)
-        {
-            PLogger.Info("EventModule Initialize");
-            _initialized = true;
-        }
-
-        public static void Tick(float deltaTime)
+        public static void Tick(float delta)
         {
             if (!_initialized)
             {
                 return;
             }
 
-            for (int i = PostList.Count - 1; i >= 0; i--)
-            {
-                var wrapper = PostList[i];
-                if (Time.frameCount - wrapper.postFrame > 1)
-                {
-                    SendEvent(wrapper.eventId, wrapper.message);
-                    wrapper.Recycle();
-                    PostList.RemoveAt(i);
-                }
-            }
+            ProcessEvents().Forget();
+        }
+
+        public static void Initialize()
+        {
+            _eventQueue = new EventQueue();
+            _initialized = true;
         }
 
         public static void Shutdown()
         {
-            ClearALlListener();
+            _initialized = false;
+            _eventQueue = null;
         }
+
+        private static void InternalSubscribe<T>(Func<T, UniTask> handler) where T : IEvent
+        {
+            var type = typeof(T);
+            if (!_eventQueue.eventHandlers.TryGetValue(type, out var handlers))
+            {
+                handlers = new List<Func<IEvent, UniTask>>();
+                _eventQueue.eventHandlers[type] = handlers;
+            }
+
+            handlers.Add(e => handler((T)e));
+        }
+
+        private static async UniTask ProcessEvents()
+        {
+            while (_eventQueue.events.Count > 0)
+            {
+                var e = _eventQueue.events.Dequeue();
+                var type = e.GetType();
+                if (!_eventQueue.eventHandlers.TryGetValue(type, out var handlers))
+                {
+                    continue;
+                }
+
+                var tasks = new List<UniTask>();
+                foreach (var handler in handlers)
+                {
+                    try
+                    {
+                        tasks.Add(handler(e));
+                    }
+                    catch (Exception exception)
+                    {
+                        PLogger.Error($"Error processing event {type.Name}: {exception}");
+                    }
+                }
+
+                await UniTask.WhenAll(tasks);
+            }
+        }
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("Prox/RuntimeTools/Print Queue Status")]
+        private static void PrintQueueStatus()
+        {
+            if (!_initialized)
+            {
+                PLogger.Info("EventModule not initialized");
+                return;
+            }
+            
+            var status = new StringBuilder()
+                .AppendLine($"Pending events: {_eventQueue.events.Count}")
+                .AppendLine($"Registered handlers:");
+
+            foreach (var kvp in _eventQueue.eventHandlers)
+            {
+                status.AppendLine($"- {kvp.Key.Name}: {kvp.Value.Count} handlers");
+            }
+
+            PLogger.Info(status.ToString());
+        }
+#endif
     }
 }

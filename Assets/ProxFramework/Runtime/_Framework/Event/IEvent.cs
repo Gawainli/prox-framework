@@ -1,6 +1,6 @@
 ﻿namespace ProxFramework.Event
 {
-    public interface IEventMessage
+    public interface IEvent
     {
         
     }
