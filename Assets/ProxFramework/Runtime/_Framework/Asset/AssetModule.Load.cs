@@ -11,11 +11,10 @@ namespace ProxFramework.Asset
     {
         private static Dictionary<string, HandleBase> _mapLocationToHandle = new();
         private static Dictionary<object, HandleBase> _mapObjectToHandle = new();
-
         private static Dictionary<GameObject, object> _mapInstanceObjectToAssetObject = new();
         private static Dictionary<string, SceneHandle> _mapSceneToHandle = new();
 
-        private static T GetHandleSync<T>(string location) where T : HandleBase
+        private static T GetHandle<T>(string location, bool isAsync) where T : HandleBase
         {
             if (_mapLocationToHandle.TryGetValue(location, out var handle))
             {
@@ -29,43 +28,14 @@ namespace ProxFramework.Asset
 
             if (typeof(T) == typeof(AssetHandle))
             {
-                var assetHandle = package.LoadAssetSync(location);
+                var assetHandle = isAsync ? package.LoadAssetAsync(location) : package.LoadAssetSync(location);
                 _mapLocationToHandle.Add(location, assetHandle);
                 return assetHandle as T;
             }
 
             if (typeof(T) == typeof(RawFileHandle))
             {
-                var rawFileHandle = package.LoadRawFileSync(location);
-                _mapLocationToHandle.Add(location, rawFileHandle);
-                return rawFileHandle as T;
-            }
-
-            return null;
-        }
-
-        private static T GetHandleAsync<T>(string location) where T : HandleBase
-        {
-            if (_mapLocationToHandle.TryGetValue(location, out var handle))
-            {
-                return handle as T;
-            }
-
-            if (!TryGetContainsPackage(location, out var package))
-            {
-                return null;
-            }
-
-            if (typeof(T) == typeof(AssetHandle))
-            {
-                var assetHandle = package.LoadAssetAsync(location);
-                _mapLocationToHandle.Add(location, assetHandle);
-                return assetHandle as T;
-            }
-
-            if (typeof(T) == typeof(RawFileHandle))
-            {
-                var rawFileHandle = package.LoadRawFileAsync(location);
+                var rawFileHandle = isAsync ? package.LoadRawFileAsync(location) : package.LoadRawFileSync(location);
                 _mapLocationToHandle.Add(location, rawFileHandle);
                 return rawFileHandle as T;
             }
@@ -75,7 +45,7 @@ namespace ProxFramework.Asset
 
         public static T LoadAssetSync<T>(string location) where T : UnityEngine.Object
         {
-            var assetHandle = GetHandleSync<AssetHandle>(location);
+            var assetHandle = GetHandle<AssetHandle>(location, false);
             if (!assetHandle.IsDone)
             {
                 assetHandle.WaitForAsyncComplete();
@@ -85,10 +55,9 @@ namespace ProxFramework.Asset
             return assetHandle.AssetObject as T;
         }
 
-        public static async UniTask<T> LoadAssetAsync<T>(string location)
-            where T : UnityEngine.Object
+        public static async UniTask<T> LoadAssetAsync<T>(string location) where T : UnityEngine.Object
         {
-            var assetHandle = GetHandleAsync<AssetHandle>(location);
+            var assetHandle = GetHandle<AssetHandle>(location, true);
             await assetHandle.ToUniTask();
             _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
             return assetHandle.AssetObject as T;
@@ -96,7 +65,7 @@ namespace ProxFramework.Asset
 
         public static byte[] LoadRawFileSync(string location)
         {
-            var rawFileHandle = GetHandleSync<RawFileHandle>(location);
+            var rawFileHandle = GetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
                 rawFileHandle.WaitForAsyncComplete();
@@ -107,14 +76,14 @@ namespace ProxFramework.Asset
 
         public static async UniTask<byte[]> LoadRawDataAsync(string location)
         {
-            var rawFileHandle = GetHandleAsync<RawFileHandle>(location);
+            var rawFileHandle = GetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileData();
         }
 
         public static string LoadTextFileSync(string location)
         {
-            var rawFileHandle = GetHandleSync<RawFileHandle>(location);
+            var rawFileHandle = GetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
                 rawFileHandle.WaitForAsyncComplete();
@@ -125,11 +94,10 @@ namespace ProxFramework.Asset
 
         public static async UniTask<string> LoadTextFileAsync(string location)
         {
-            var rawFileHandle = GetHandleAsync<RawFileHandle>(location);
+            var rawFileHandle = GetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileText();
         }
-
 
         public static GameObject InstantiateGameObjectSync(string location, Transform parentTransform = null,
             bool stayWorld = false)
@@ -214,15 +182,15 @@ namespace ProxFramework.Asset
 
         public static void ReleaseAsset(string location)
         {
-            var handle = _mapLocationToHandle.GetValueOrDefault(location);
-            if (handle == null)
+            if (_mapLocationToHandle.TryGetValue(location, out var handle))
+            {
+                handle.Release();
+                _mapLocationToHandle.Remove(location);
+            }
+            else
             {
                 PLogger.Warning($"Cannot find package by location:{location}");
-                return;
             }
-
-            handle.Release();
-            _mapLocationToHandle.Remove(location);
         }
 
         public static void ReleaseGameObject(GameObject gameObject)
@@ -246,9 +214,11 @@ namespace ProxFramework.Asset
                 return;
             }
 
-            var handle = _mapObjectToHandle.GetValueOrDefault(assetObject);
-            handle?.Release();
-            _mapObjectToHandle.Remove(assetObject);
+            if (_mapObjectToHandle.TryGetValue(assetObject, out var handle))
+            {
+                handle.Release();
+                _mapObjectToHandle.Remove(assetObject);
+            }
         }
 
         public static async UniTask UnloadUnusedAssets()
