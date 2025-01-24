@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ProxFramework.Blackboard
 {
@@ -8,7 +9,7 @@ namespace ProxFramework.Blackboard
         public string name;
         private readonly int _capacity;
         private readonly Dictionary<string, BbItem> _mapKeyNameToBbItems = new();
-        private Queue<BbItem> _queueBbItems;
+        private readonly Queue<BbItem> _queueBbItems;
 
         private static List<WeakReference<Blackboard>> _referenceBoards = new();
 
@@ -39,6 +40,20 @@ namespace ProxFramework.Blackboard
             return _queueBbItems.Dequeue();
         }
 
+        private void SetValue(string key, Action<BbItem> setValueAction)
+        {
+            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
+            {
+                setValueAction(outItem);
+            }
+            else
+            {
+                var bbItem = GetBbItem();
+                setValueAction(bbItem);
+                _mapKeyNameToBbItems.Add(key, bbItem);
+            }
+        }
+
         public bool HasKey(string key)
         {
             return _mapKeyNameToBbItems.ContainsKey(key);
@@ -46,50 +61,22 @@ namespace ProxFramework.Blackboard
 
         public void SetNumberValue(string key, float value)
         {
-            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
-            {
-                outItem.NumberValue = value;
-            }
-            else
-            {
-                var bbItem = GetBbItem();
-                bbItem.NumberValue = value;
-                _mapKeyNameToBbItems.Add(key, bbItem);
-            }
+            SetValue(key, item => item.NumberValue = value);
         }
 
         public float GetNumberValue(string key)
         {
-            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
-            {
-                return outItem.NumberValue;
-            }
-
-            return 0;
+            return _mapKeyNameToBbItems.TryGetValue(key, out var outItem) ? outItem.NumberValue : 0;
         }
 
         public void SetObjectValue(string key, object value)
         {
-            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
-            {
-                outItem.ObjectValue = value;
-            }
-            else
-            {
-                var bbItem = GetBbItem();
-                bbItem.ObjectValue = value;
-                _mapKeyNameToBbItems.Add(key, bbItem);
-            }
+            SetValue(key, item => item.ObjectValue = value);
         }
 
         public object GetObjectValue(string key)
         {
-            if (_mapKeyNameToBbItems.TryGetValue(key, out var outItem))
-            {
-                return outItem.ObjectValue;
-            }
-
-            return null;
+            return _mapKeyNameToBbItems.TryGetValue(key, out var outItem) ? outItem.ObjectValue : null;
         }
 
         public void SetStringValue(string key, string value)
@@ -127,13 +114,13 @@ namespace ProxFramework.Blackboard
 
         public override string ToString()
         {
-            var str = $"Blackboard {name}: {_mapKeyNameToBbItems.Count} items\n";
+            var sb = new StringBuilder($"Blackboard {name}: {_mapKeyNameToBbItems.Count} items\n");
             foreach (var pair in _mapKeyNameToBbItems)
             {
-                str += $"{pair.Key} = {pair.Value}\n";
+                sb.AppendLine($"{pair.Key} = {pair.Value}");
             }
 
-            return str;
+            return sb.ToString();
         }
 
         public static IEnumerable<Blackboard> GetAllBoards()
