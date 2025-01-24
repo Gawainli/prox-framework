@@ -1,9 +1,6 @@
-﻿using System;
-using Cysharp.Threading.Tasks;
-using ProxFramework.Asset;
+﻿using Cysharp.Threading.Tasks;
+using ProxFramework.Scene;
 using ProxFramework.StateMachine;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace GameName.Runtime
 {
@@ -15,7 +12,7 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            AssetModule.LoadSceneAsync("Assets/_Scenes/TestYoo.unity", LoadSceneMode.Additive).Forget();
+            SceneModule.ChangeTopAsync("Assets/_Scenes/TestYoo.unity").Forget();
         }
 
         public override void Exit()
