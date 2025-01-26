@@ -48,7 +48,7 @@ namespace ProxFramework.Asset
             get
             {
 #if UNITY_EDITOR
-                _playMode = SettingsUtil.EditorDevSettings.assetPlayMode;
+                _playMode = SettingsUtil.GlobalSettings.editorPlayMode;
 #else
                 _playMode = SettingsUtil.GlobalSettings.assetPlayMode;
 #endif
@@ -56,10 +56,9 @@ namespace ProxFramework.Asset
             }
         }
 
-        public static string DefaultRawPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultRawPackageName;
         public static TaskCtsModule.CtsInfo ctsInfo;
         public static CancellationToken CtsToken => ctsInfo.cts.Token;
-        public static string DefaultPkgName => SettingsUtil.GlobalSettings.assetSettings.defaultPackageName;
+        public static string defaultPkgName;
 
         public static void Initialize()
         {
@@ -71,22 +70,41 @@ namespace ProxFramework.Asset
             ctsInfo = TaskCtsModule.GetCts();
             _downloadingMaxNum = SettingsUtil.GlobalSettings.assetSettings.maxDownloadingNum;
             _failedTryAgain = SettingsUtil.GlobalSettings.assetSettings.failedTryAgain;
-
-            var defaultPackage = YooAssets.TryGetPackage(DefaultPkgName);
-            if (defaultPackage == null)
-            {
-                defaultPackage = YooAssets.CreatePackage(DefaultPkgName);
-            }
-
-            YooAssets.SetDefaultPackage(defaultPackage);
+            defaultPkgName = SettingsUtil.GlobalSettings.assetSettings.packages[0].name;
             _initialized = true;
         }
 
-        public static async UniTask<EOperationStatus> InitPackage(string packageName)
+        public static async UniTask<EOperationStatus> InitPackages()
         {
+            foreach (var packageDefine in SettingsUtil.GlobalSettings.assetSettings.packages)
+            {
+                var status = await InitPackage(packageDefine);
+                if (status != EOperationStatus.Failed) continue;
+                return EOperationStatus.Failed;
+            }
+
+            return EOperationStatus.Succeed;
+        }
+
+
+        public static async UniTask<EOperationStatus> InitPackage(AssetPackageDefine packageDefine)
+        {
+            var packageName = packageDefine.name;
             var pkgPlayMode = PlayMode;
+            var defaultHostServer = GetHostServerURL();
+            var fallbackHostServer = GetHostServerURL();
+            IDecryptionServices decryptionServices = packageDefine.encryptType switch
+            {
+                AssetEncryptType.Offset => new FileOffsetDecryption(),
+                AssetEncryptType.Xor => new FileStreamDecryption(),
+                _ => null
+            };
 #if UNITY_EDITOR
-            pkgPlayMode = SettingsUtil.EditorDevSettings.GetPackageDevPlayMode(packageName);
+            if (!string.IsNullOrEmpty(packageDefine.devHostUrl) && pkgPlayMode == EPlayMode.EditorSimulateMode)
+            {
+                pkgPlayMode = EPlayMode.HostPlayMode;
+                defaultHostServer = packageDefine.devHostUrl;
+            }
 #endif
             var package = YooAssets.TryGetPackage(packageName) ?? YooAssets.CreatePackage(packageName);
             _mapNameToResourcePackage.TryAdd(packageName, package);
@@ -105,27 +123,23 @@ namespace ProxFramework.Asset
             {
                 var createParameters = new OfflinePlayModeParameters();
                 createParameters.BuildinFileSystemParameters =
-                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters(decryptionServices);
                 initializationOperation = package.InitializeAsync(createParameters);
             }
             else if (pkgPlayMode == EPlayMode.HostPlayMode)
             {
-                string defaultHostServer = GetHostServerURL();
-                string fallbackHostServer = GetHostServerURL();
                 IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
                 var createParameters = new HostPlayModeParameters();
                 createParameters.BuildinFileSystemParameters =
-                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+                    FileSystemParameters.CreateDefaultBuildinFileSystemParameters(decryptionServices);
                 createParameters.CacheFileSystemParameters =
-                    FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
+                    FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices, decryptionServices);
                 initializationOperation = package.InitializeAsync(createParameters);
             }
             else if (pkgPlayMode == EPlayMode.WebPlayMode)
             {
                 var createParameters = new WebPlayModeParameters();
 #if UNITY_WEBGL && WEIXINMINIGAME && !UNITY_EDITOR
-			    string defaultHostServer = GetHostServerURL();
-                string fallbackHostServer = GetHostServerURL();
                 IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
                 createParameters.WebServerFileSystemParameters =
  WechatFileSystemCreater.CreateWechatFileSystemParameters(remoteServices);
@@ -142,6 +156,11 @@ namespace ProxFramework.Asset
             }
 
             await initializationOperation.ToUniTask(cancellationToken: ctsInfo.cts.Token);
+            if (initializationOperation.Status == EOperationStatus.Failed)
+            {
+                PLogger.Error($"Init package {packageName} failed. error: {initializationOperation.Error}");
+            }
+
             return initializationOperation.Status;
         }
 

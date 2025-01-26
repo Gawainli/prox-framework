@@ -14,31 +14,15 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            var status = await AssetModule.InitPackage(AssetModule.DefaultPkgName);
-            if (status == EOperationStatus.Failed)
+            var status = await AssetModule.InitPackages();
+            if (status == EOperationStatus.Succeed)
             {
-                PLogger.Error($"package:{AssetModule.DefaultPkgName} init failed");
-                return;
+                ChangeState<StateUpdateVersion>();
             }
-
-            status = await AssetModule.InitPackage(AssetModule.DefaultRawPkgName);
-            if (status == EOperationStatus.Failed)
+            else
             {
-                PLogger.Error($"package:{AssetModule.DefaultRawPkgName} init failed");
-                return;
+                PLogger.Error("StateInitPackage failed");
             }
-
-            foreach (var packageName in SettingsUtil.GlobalSettings.assetSettings.packageNames)
-            {
-                status = await AssetModule.InitPackage(packageName);
-                if (status == EOperationStatus.Failed)
-                {
-                    PLogger.Error($"package:{packageName} init failed");
-                    return;
-                }
-            }
-
-            ChangeState<StateUpdateVersion>();
         }
 
         public override void Exit()

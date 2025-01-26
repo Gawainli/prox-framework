@@ -8,7 +8,7 @@ namespace ProxFramework.Asset
         public static string GetPackageVersion(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
-                ? YooAssets.GetPackage(DefaultPkgName)
+                ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
             return package == null ? string.Empty : package.GetPackageVersion();
         }
@@ -18,7 +18,7 @@ namespace ProxFramework.Asset
             string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
-                ? YooAssets.GetPackage(DefaultPkgName)
+                ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
             var op = package.RequestPackageVersionAsync(appendTimeTicks, timeout);
             await op.ToUniTask(cancellationToken: CtsToken);
@@ -29,7 +29,7 @@ namespace ProxFramework.Asset
             int timeout = 60, string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
-                ? YooAssets.GetPackage(DefaultPkgName)
+                ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
             var op = package.UpdatePackageManifestAsync(packageVersion, timeout);
             await op.ToUniTask(cancellationToken: CtsToken);
@@ -39,7 +39,7 @@ namespace ProxFramework.Asset
         public static ResourceDownloaderOperation CreateResourceDownloader(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
-                ? YooAssets.GetPackage(DefaultPkgName)
+                ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
             var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
             return downloadOp;
@@ -47,7 +47,7 @@ namespace ProxFramework.Asset
 
         public static ResourceDownloaderOperation CreateResourceDownloaderForAll()
         {
-            var package = YooAssets.GetPackage(DefaultPkgName);
+            var package = YooAssets.GetPackage(defaultPkgName);
             var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
             foreach (var pkg in GetAllPackages())
             {
@@ -61,7 +61,7 @@ namespace ProxFramework.Asset
         public static async UniTask<ClearCacheFilesOperation> ClearUnusedCacheFilesAsync(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
-                ? YooAssets.GetPackage(DefaultPkgName)
+                ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
             var op = package.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
             await op.ToUniTask(cancellationToken: CtsToken);

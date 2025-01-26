@@ -9,6 +9,7 @@ namespace ProxFramework.Runtime.Settings
     {
         public int targetFrameRate = 60;
         public EPlayMode assetPlayMode;
+        public EPlayMode editorPlayMode;
         public AssetSettings assetSettings;
         public HCLRSettings hclrSettings;
     }
