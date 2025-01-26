@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60
-  assetPlayMode: 3
+  assetPlayMode: 1
   editorPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
@@ -36,3 +36,9 @@ MonoBehaviour:
     logicMainDllName: 
     assemblyBytesAssetDir: 
     assemblyBytesAssetExtension: 
+  uiSettings:
+    pixelPerfect: 0
+    matchWidthOrHeight: 0
+    referenceResolutionX: 1920
+    referenceResolutionY: 1080
+    ignoreReversedGraphics: 0
