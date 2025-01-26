@@ -15,7 +15,7 @@ namespace ProxFramework.Scene
             _sceneStack.Push(scene);
         }
 
-        public static async UniTask ChangeTopAsync(string location)
+        public static async UniTask ChangeTopSceneAsync(string location)
         {
             await PopSceneAsync();
             await PushSceneAsync(location);
