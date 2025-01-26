@@ -4,9 +4,9 @@ using System.Net.Sockets;
 
 namespace ProxFramework.Network
 {
-    public class NetworkModule
+    public static class NetworkModule
     {
-        private bool _initialized;
+        private static bool _initialized;
         private static readonly List<TcpClient> tcpClients = new List<TcpClient>();
         
         public static TcpClient CreateTcpClient()
@@ -16,12 +16,12 @@ namespace ProxFramework.Network
             return tcpClient;
         }
         
-        public void Initialize()
+        public static void Initialize()
         {
             _initialized = true;
         }
 
-        public void Tick(float deltaTime)
+        public static void Tick(float deltaTime)
         {
             if (_initialized)
             {
@@ -32,7 +32,7 @@ namespace ProxFramework.Network
             }
         }
 
-        public void Shutdown()
+        public static void Shutdown()
         {
             foreach (var client in tcpClients)
             {
