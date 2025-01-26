@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using ProxFramework.Module;
 
 namespace ProxFramework.Network
 {
-    public class NetworkModule : IModule
+    public class NetworkModule
     {
+        private bool _initialized;
         private static readonly List<TcpClient> tcpClients = new List<TcpClient>();
         
         public static TcpClient CreateTcpClient()
@@ -16,18 +16,18 @@ namespace ProxFramework.Network
             return tcpClient;
         }
         
-        public void Initialize(object userData = null)
+        public void Initialize()
         {
-            Initialized = true;
+            _initialized = true;
         }
 
-        public void Tick(float deltaTime, float unscaledDeltaTime)
+        public void Tick(float deltaTime)
         {
-            if (Initialized)
+            if (_initialized)
             {
                 foreach (var client in tcpClients)
                 {
-                    client.Update(unscaledDeltaTime);
+                    client.Update(deltaTime);
                 }
             }
         }
@@ -39,10 +39,7 @@ namespace ProxFramework.Network
                 client.Dispose();
             }
             tcpClients.Clear();
-            Initialized = false;
+            _initialized = false;
         }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
     }
 }

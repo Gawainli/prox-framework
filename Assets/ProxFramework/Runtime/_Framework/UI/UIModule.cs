@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using ProxFramework.Module;
 using ProxFramework.Runtime.Settings;
 using UnityEngine;
 using UnityEngine.EventSystems;
