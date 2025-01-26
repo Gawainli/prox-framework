@@ -33,7 +33,7 @@ namespace ProxFramework.Editor
         {
             ToolbarExtender.LeftToolbarGUI.Add(OnToolbarGUI);
         }
-        
+
         private static void RunGame()
         {
             if (EditorTools.HasDirtyScenes())
@@ -52,6 +52,10 @@ namespace ProxFramework.Editor
 
         static void OnToolbarGUI()
         {
+            if (EditorApplication.isPlaying)
+            {
+                return;
+            }
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button(new GUIContent("Run Game", "Start Scene 0"), ToolbarStyles.commandButtonStyle))
