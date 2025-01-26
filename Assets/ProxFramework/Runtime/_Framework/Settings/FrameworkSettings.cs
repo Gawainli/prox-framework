@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ProxFramework.UI;
+using UnityEngine;
 using UnityEngine.Serialization;
 using YooAsset;
 
@@ -12,5 +13,6 @@ namespace ProxFramework.Runtime.Settings
         public EPlayMode editorPlayMode;
         public AssetSettings assetSettings;
         public HCLRSettings hclrSettings;
+        public UISettings uiSettings;
     }
 }

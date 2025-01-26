@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Module;
+using ProxFramework.Runtime.Settings;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,21 +10,13 @@ using Object = UnityEngine.Object;
 
 namespace ProxFramework.UI
 {
-    public class UIModuleCfg
-    {
-        public bool pixelPerfect = false;
-        public bool matchWidthOrHeight = false;
-        public float referenceResolutionX = 1920;
-        public float referenceResolutionY = 1080;
-        public bool ignoreReversedGraphics = false;
-    }
-
-    public class UIModule
+    public static class UIModule
     {
         private static bool _initialized;
         private static readonly List<UIWindow> _windowStack = new List<UIWindow>(100);
         private static RectTransform _rootRectTransform;
         public static GameObject UIRoot { get; private set; }
+        public static RectTransform RootRectTransform => _rootRectTransform;
 
         public static async UniTask<T> OpenWindowAsync<T>(string assetPath, params object[] userDatas)
             where T : UIWindow
@@ -119,18 +112,18 @@ namespace ProxFramework.UI
             _windowStack.Clear();
         }
 
-        private GameObject NewUIRoot(UIModuleCfg cfg)
+        private static GameObject NewUIRoot(UISettings uiSettings)
         {
             var root = new GameObject("UIRoot");
             var canvas = root.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.pixelPerfect = cfg.pixelPerfect;
+            canvas.pixelPerfect = uiSettings.pixelPerfect;
             var scaler = root.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.matchWidthOrHeight = cfg.matchWidthOrHeight ? 0 : 1;
-            scaler.referenceResolution = new Vector2(cfg.referenceResolutionX, cfg.referenceResolutionY);
+            scaler.matchWidthOrHeight = uiSettings.matchWidthOrHeight ? 0 : 1;
+            scaler.referenceResolution = new Vector2(uiSettings.referenceResolutionX, uiSettings.referenceResolutionY);
             var raycaster = root.AddComponent<GraphicRaycaster>();
-            raycaster.ignoreReversedGraphics = cfg.ignoreReversedGraphics;
+            raycaster.ignoreReversedGraphics = uiSettings.ignoreReversedGraphics;
             return root;
         }
 
@@ -275,6 +268,12 @@ namespace ProxFramework.UI
             RectTransformUtility.ScreenPointToLocalPointInRectangle(_rootRectTransform, screenPos, null, out var uiPos);
             return uiPos;
         }
+        
+        public static Vector3 UIPosToWorldPos(Vector2 uiPos)
+        {
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(_rootRectTransform, uiPos, Camera.main, out var worldPos);
+            return worldPos;
+        }
 
         //从当前 game object 开始向下传递事件。默认只传递到下一级execute event成功的 object
         //unity的click事件比较特殊，必须execute down和up事件才会触发click事件。所以如果传递到的object需要响应click，但传递的event execute失败,也视为响应成功不再向下传递
@@ -327,7 +326,7 @@ namespace ProxFramework.UI
         }
 
 
-        public void Initialize()
+        public static void Initialize()
         {
             if (_initialized)
             {
@@ -335,22 +334,20 @@ namespace ProxFramework.UI
                 return;
             }
 
-            UIRoot = NewUIRoot(new UIModuleCfg());
+            UIRoot = NewUIRoot(SettingsUtil.GlobalSettings.uiSettings);
             _rootRectTransform = UIRoot.GetComponent<RectTransform>();
         }
 
-        public void Tick(float deltaTime)
+        public static void Tick(float deltaTime)
         {
-            if (_initialized)
+            if (!_initialized) return;
+            foreach (var ui in _windowStack)
             {
-                foreach (var ui in _windowStack)
-                {
-                    ui?.InternalUpdate(deltaTime);
-                }
+                ui?.InternalUpdate(deltaTime);
             }
         }
 
-        public void Shutdown()
+        public static void Shutdown()
         {
             if (!_initialized)
             {
