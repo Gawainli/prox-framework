@@ -14,7 +14,7 @@ namespace ProxFramework.Asset
         private static Dictionary<GameObject, object> _mapInstanceObjectToAssetObject = new();
         private static Dictionary<string, SceneHandle> _mapSceneToHandle = new();
 
-        private static T GetHandle<T>(string location, bool isAsync) where T : HandleBase
+        public static T GetAssetHandle<T>(string location, bool isAsync) where T : HandleBase
         {
             if (_mapLocationToHandle.TryGetValue(location, out var handle))
             {
@@ -45,7 +45,7 @@ namespace ProxFramework.Asset
 
         public static T LoadAssetSync<T>(string location) where T : UnityEngine.Object
         {
-            var assetHandle = GetHandle<AssetHandle>(location, false);
+            var assetHandle = GetAssetHandle<AssetHandle>(location, false);
             if (!assetHandle.IsDone)
             {
                 assetHandle.WaitForAsyncComplete();
@@ -57,7 +57,7 @@ namespace ProxFramework.Asset
 
         public static async UniTask<T> LoadAssetAsync<T>(string location) where T : UnityEngine.Object
         {
-            var assetHandle = GetHandle<AssetHandle>(location, true);
+            var assetHandle = GetAssetHandle<AssetHandle>(location, true);
             await assetHandle.ToUniTask();
             _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
             return assetHandle.AssetObject as T;
@@ -65,7 +65,7 @@ namespace ProxFramework.Asset
 
         public static byte[] LoadRawFileSync(string location)
         {
-            var rawFileHandle = GetHandle<RawFileHandle>(location, false);
+            var rawFileHandle = GetAssetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
                 rawFileHandle.WaitForAsyncComplete();
@@ -76,14 +76,14 @@ namespace ProxFramework.Asset
 
         public static async UniTask<byte[]> LoadRawDataAsync(string location)
         {
-            var rawFileHandle = GetHandle<RawFileHandle>(location, true);
+            var rawFileHandle = GetAssetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileData();
         }
 
         public static string LoadTextFileSync(string location)
         {
-            var rawFileHandle = GetHandle<RawFileHandle>(location, false);
+            var rawFileHandle = GetAssetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
                 rawFileHandle.WaitForAsyncComplete();
@@ -94,7 +94,7 @@ namespace ProxFramework.Asset
 
         public static async UniTask<string> LoadTextFileAsync(string location)
         {
-            var rawFileHandle = GetHandle<RawFileHandle>(location, true);
+            var rawFileHandle = GetAssetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileText();
         }
