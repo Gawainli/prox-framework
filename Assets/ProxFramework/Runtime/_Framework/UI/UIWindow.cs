@@ -1,39 +1,42 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System;
+using Cysharp.Threading.Tasks;
 using ProxFramework.Asset;
-
 using UnityEngine;
 using UnityEngine.UI;
+using YooAsset;
+using Object = UnityEngine.Object;
 
 namespace ProxFramework.UI
 {
     public abstract class UIWindow
     {
+        public const int WindowHideLayer = 2; // Ignore Raycast
+        public const int WindowShowLayer = 5; // UI
+        public const int WindowDepthStep = 10;
 
-        private GameObject _uiPanel;
+        private AssetHandle _assetHandle;
+        private bool _isCreate = false;
+        private GameObject _panel;
         private Canvas _canvas;
         private Canvas[] _childCanvas;
-
-        private bool _isCreate = false;
-
         private GraphicRaycaster _rayCaster;
         private GraphicRaycaster[] _childRayCaster;
-
-        public Transform Transform => _uiPanel.transform;
-        public RectTransform RectTransform => _uiPanel.GetComponent<RectTransform>();
-        public GameObject GameObject => _uiPanel;
+        private Action<UIWindow> _prepareCallback;
+        public Transform Transform => GameObject.transform;
+        public RectTransform RectTransform => GameObject.GetComponent<RectTransform>();
+        public GameObject GameObject => _panel;
         public string WindowName { get; private set; }
         public int WindowLayer { get; private set; }
         public bool Prepared { get; private set; }
         public bool FullScreen { get; private set; }
 
-        private object[] _userDatas;
         public object UserData
         {
             get
             {
-                if (_userDatas is { Length: > 0 })
+                if (UserDatas is { Length: > 0 })
                 {
-                    return _userDatas[0];
+                    return UserDatas[0];
                 }
                 else
                 {
@@ -42,11 +45,7 @@ namespace ProxFramework.UI
             }
         }
 
-        public object[] UserDatas => _userDatas;
-
-        protected UIWindow()
-        {
-        }
+        public object[] UserDatas { get; internal set; }
 
         public int Depth
         {
@@ -61,12 +60,14 @@ namespace ProxFramework.UI
                     }
 
                     _canvas.sortingOrder = value;
+
+                    // Set child canvas sorting order
                     int depth = value;
                     foreach (var child in _childCanvas)
                     {
                         if (child != null && child != _canvas)
                         {
-                            depth++;
+                            depth += WindowDepthStep;
                             child.sortingOrder = depth;
                         }
                     }
@@ -81,12 +82,27 @@ namespace ProxFramework.UI
 
         public bool Visible
         {
-            get => _uiPanel != null && _uiPanel.activeSelf;
+            get => _canvas != null && _canvas.gameObject.layer == WindowShowLayer;
             set
             {
-                if (_uiPanel != null && _uiPanel.activeSelf != value)
+                if (_canvas != null)
                 {
-                    _uiPanel.SetActive(value);
+                    int setLayer = value ? WindowShowLayer : WindowHideLayer;
+                    if (_canvas.gameObject.layer == setLayer)
+                    {
+                        return;
+                    }
+
+                    _canvas.gameObject.layer = setLayer;
+
+                    // Set child canvas layer
+                    foreach (var child in _childCanvas)
+                    {
+                        if (child != null && child != _canvas)
+                        {
+                            child.gameObject.layer = setLayer;
+                        }
+                    }
 
                     Interactable = value;
                     if (_isCreate)
@@ -154,69 +170,64 @@ namespace ProxFramework.UI
         {
         }
 
-        public async UniTask LoadAsync(string assetPath, System.Object[] userDatas)
+        internal async UniTask InternalLoadAsync(string location)
         {
-            _userDatas = userDatas;
-            var uiPrefab = await AssetModule.LoadAssetAsync<GameObject>(assetPath);
-            if (uiPrefab == null)
+            if (_assetHandle != null)
             {
-                PLogger.Error("UIWindow Load Error: uiPrefab is null. path: " + assetPath);
                 return;
             }
 
-            InstantiatePanel(uiPrefab);
+            _assetHandle = AssetModule.GetAssetHandle<AssetHandle>(location, true);
+            await _assetHandle;
+            InternalLoadCompleted();
         }
 
-        public void LoadSync(string assetPath, System.Object[] userDatas)
+        internal void InternalLoadSync(string location)
         {
-            _userDatas = userDatas;
-            var uiPrefab = AssetModule.LoadAssetSync<GameObject>(assetPath);
-            if (uiPrefab == null)
+            if (_assetHandle != null)
             {
-                PLogger.Error("UIWindow Load Error: panelPrefab is null. path: " + assetPath);
                 return;
             }
 
-            InstantiatePanel(uiPrefab);
+            _assetHandle = AssetModule.GetAssetHandle<AssetHandle>(location, false);
+            InternalLoadCompleted();
         }
 
-        private void InstantiatePanel(GameObject panelPrefab)
+        private void InternalLoadCompleted()
         {
-            _uiPanel = Object.Instantiate(panelPrefab, UIModule.UIRoot.transform);
-            _uiPanel.transform.localPosition = Vector3.zero;
-            ;
-            _canvas = _uiPanel.GetComponent<Canvas>();
+            if (_assetHandle.AssetObject == null)
+            {
+                PLogger.Error("UIWindow Load Error: panelPrefab is null.");
+                return;
+            }
+
+            _panel = _assetHandle.InstantiateSync(UIModule.UIRoot.transform);
+            _panel.transform.localPosition = Vector3.zero;
+
+            _canvas = GameObject.GetComponent<Canvas>();
             if (_canvas == null)
             {
-                PLogger.Error("UIWindow Load Error: Canvas is null. name: " + panelPrefab.name);
+                PLogger.Error("UIWindow Load Error: Canvas is null. name: " + _panel.name);
+                return;
             }
 
             _canvas.overrideSorting = true;
             _canvas.sortingOrder = 0;
             _canvas.sortingLayerName = "UI";
 
-            // var rectTransform = _uiPanel.GetComponent<RectTransform>();
-            // var rootRectTransform = UIModule.UIRoot.GetComponent<RectTransform>();
-            // rectTransform.sizeDelta = rootRectTransform.sizeDelta;
-            // rectTransform.anchoredPosition = rootRectTransform.anchoredPosition;
-            // rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            // rectTransform.transform.localScale = Vector3.one;
-
-
-            _rayCaster = _uiPanel.GetComponent<GraphicRaycaster>();
-            _childCanvas = _uiPanel.GetComponentsInChildren<Canvas>();
-            _childRayCaster = _uiPanel.GetComponentsInChildren<GraphicRaycaster>();
-            Prepared = true;
+            _rayCaster = GameObject.GetComponent<GraphicRaycaster>();
+            _childCanvas = GameObject.GetComponentsInChildren<Canvas>();
+            _childRayCaster = GameObject.GetComponentsInChildren<GraphicRaycaster>();
         }
 
         protected Transform Q(string path)
         {
-            return _uiPanel.transform.Find(path);
+            return GameObject.transform.Find(path);
         }
 
         protected T Q<T>(string path) where T : Component
         {
-            var transform = _uiPanel.transform.Find(path);
+            var transform = GameObject.transform.Find(path);
             if (transform == null)
             {
                 PLogger.Error($"{WindowName} Q Error: {path} is null");
@@ -226,7 +237,7 @@ namespace ProxFramework.UI
         }
 
 
-        internal void Create()
+        internal void InternalCreate()
         {
             if (_isCreate)
             {
@@ -237,20 +248,20 @@ namespace ProxFramework.UI
             OnCreate();
         }
 
-        internal void Refresh(params System.Object[] userDatas)
+        internal void InternalRefresh(params System.Object[] userDatas)
         {
             if (!_isCreate)
             {
                 return;
             }
 
-            _userDatas = userDatas;
+            UserDatas = userDatas;
             OnRefresh();
         }
 
-        internal void Update(float deltaTime)
+        internal void InternalUpdate(float deltaTime)
         {
-            if (!_isCreate)
+            if (!_isCreate || !Visible || !Prepared)
             {
                 return;
             }
@@ -258,19 +269,18 @@ namespace ProxFramework.UI
             OnUpdate(deltaTime);
         }
 
-        internal void Destroy()
+        internal void InternalDestroy()
         {
-            if (!_isCreate)
-            {
-                return;
-            }
+            _isCreate = false;
+            _prepareCallback = null;
 
-            if (_uiPanel != null)
-            {
-                OnDestroy();
-                Object.Destroy(_uiPanel);
-                _uiPanel = null;
-            }
+            _assetHandle?.Release();
+            _assetHandle = null;
+
+            if (_panel == null) return;
+            OnDestroy();
+            Object.Destroy(_panel);
+            _panel = null;
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-
 using ProxFramework.Module;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace ProxFramework.UI
 {
@@ -18,11 +18,11 @@ namespace ProxFramework.UI
         public bool ignoreReversedGraphics = false;
     }
 
-    public class UIModule : IModule
+    public class UIModule
     {
-        private static readonly List<UIWindow> WindowStack = new List<UIWindow>(100);
+        private static bool _initialized;
+        private static readonly List<UIWindow> _windowStack = new List<UIWindow>(100);
         private static RectTransform _rootRectTransform;
-
         public static GameObject UIRoot { get; private set; }
 
         public static async UniTask<T> OpenWindowAsync<T>(string assetPath, params object[] userDatas)
@@ -38,25 +38,22 @@ namespace ProxFramework.UI
             if (ContainsWindow(windowName))
             {
                 var window = GetWindow(windowName);
-                PopWindow(window);
-                PushWindow(window);
-                SortWindowDepth(window.WindowLayer);
-                window.Create();
-                window.Refresh(userDatas);
+                window.UserDatas = userDatas;
+                Pop(window);
+                Push(window);
+                OnWindowPrepared(window);
                 return (T)window;
             }
             else
             {
                 var window = CreateWindowInstance(typeof(T));
-                PushWindow(window);
-                await window.LoadAsync(assetPath, userDatas);
-                SortWindowDepth(window.WindowLayer);
-                window.Create();
-                window.Refresh(userDatas);
+                window.UserDatas = userDatas;
+                Push(window);
+                await window.InternalLoadAsync(assetPath);
+                OnWindowPrepared(window);
                 return (T)window;
             }
         }
-
 
         public static T OpenWindowSync<T>(string assetPath, int layer = 0, bool fullscreen = false,
             params System.Object[] userDatas)
@@ -66,23 +63,28 @@ namespace ProxFramework.UI
             if (ContainsWindow(windowName))
             {
                 var window = GetWindow(windowName);
-                PopWindow(window);
-                PushWindow(window);
-                SortWindowDepth(window.WindowLayer);
-                window.Create();
-                window.Refresh(userDatas);
+                window.UserDatas = userDatas;
+                Pop(window);
+                Push(window);
+                OnWindowPrepared(window);
                 return (T)window;
             }
             else
             {
                 var window = CreateWindowInstance(typeof(T));
-                PushWindow(window);
-                window.LoadSync(assetPath, userDatas);
-                SortWindowDepth(window.WindowLayer);
-                window.Create();
-                window.Refresh(userDatas);
+                window.UserDatas = userDatas;
+                Push(window);
+                window.InternalLoadSync(assetPath);
                 return (T)window;
             }
+        }
+
+        private static void OnWindowPrepared(UIWindow window, params object[] userDatas)
+        {
+            SortWindowDepth(window.WindowLayer);
+            window.InternalCreate();
+            window.InternalRefresh();
+            SetWindowVisible();
         }
 
         public static void CloseWindow(Type type)
@@ -100,9 +102,8 @@ namespace ProxFramework.UI
             if (ContainsWindow(windowName))
             {
                 var window = GetWindow(windowName);
-                window.Destroy();
-                PopWindow(window);
-                //TODO:关闭窗口时对window重新排序
+                window.InternalDestroy();
+                Pop(window);
                 SortWindowDepth(window.WindowLayer);
                 SetWindowVisible();
             }
@@ -110,12 +111,12 @@ namespace ProxFramework.UI
 
         public static void CloseAll()
         {
-            for (int i = 0; i < WindowStack.Count; i++)
+            for (int i = 0; i < _windowStack.Count; i++)
             {
-                WindowStack[i].Destroy();
+                _windowStack[i].InternalDestroy();
             }
 
-            WindowStack.Clear();
+            _windowStack.Clear();
         }
 
         private GameObject NewUIRoot(UIModuleCfg cfg)
@@ -142,23 +143,35 @@ namespace ProxFramework.UI
                 return null;
             }
 
-            var attribute = Attribute.GetCustomAttribute(type, typeof(UIWindowAttribute)) as UIWindowAttribute ??
-                            new UIWindowAttribute(0, false);
+            var attribute = Attribute.GetCustomAttribute(type, typeof(UIWindowAttribute)) as UIWindowAttribute;
+            if (attribute == null)
+            {
+                PLogger.Error($"Window attribute not found. Type:{type.FullName}");
+                return null;
+            }
+
             window.Init(type.FullName, attribute.windowLayer, attribute.fullScreen);
             return window;
         }
 
-        private static void PushWindow(UIWindow window)
+        private static void Push(UIWindow window)
         {
             if (window == null)
             {
+                PLogger.Error("Push window is null.");
+                return;
+            }
+
+            if (ContainsWindow(window.WindowName))
+            {
+                PLogger.Error($"Window already exists. WindowName:{window.WindowName}");
                 return;
             }
 
             var index = -1;
-            for (int i = 0; i < WindowStack.Count; i++)
+            for (int i = 0; i < _windowStack.Count; i++)
             {
-                if (window.WindowLayer < WindowStack[i].WindowLayer)
+                if (window.WindowLayer < _windowStack[i].WindowLayer)
                 {
                     index = i + 1;
                 }
@@ -166,9 +179,9 @@ namespace ProxFramework.UI
 
             if (index == -1)
             {
-                for (int i = 0; i < WindowStack.Count; i++)
+                for (int i = 0; i < _windowStack.Count; i++)
                 {
-                    if (window.WindowLayer > WindowStack[i].WindowLayer)
+                    if (window.WindowLayer > _windowStack[i].WindowLayer)
                     {
                         index = i + 1;
                     }
@@ -180,12 +193,12 @@ namespace ProxFramework.UI
                 index = 0;
             }
 
-            WindowStack.Insert(index, window);
+            _windowStack.Insert(index, window);
         }
 
-        private static void PopWindow(UIWindow window)
+        private static void Pop(UIWindow window)
         {
-            WindowStack.Remove(window);
+            _windowStack.Remove(window);
         }
 
         public static bool ContainsWindow<T>()
@@ -195,7 +208,7 @@ namespace ProxFramework.UI
 
         public static bool ContainsWindow(string name)
         {
-            foreach (var ui in WindowStack)
+            foreach (var ui in _windowStack)
             {
                 if (ui.WindowName == name)
                 {
@@ -208,7 +221,7 @@ namespace ProxFramework.UI
 
         public static UIWindow GetWindow(string name)
         {
-            foreach (var ui in WindowStack)
+            foreach (var ui in _windowStack)
             {
                 if (ui.WindowName == name)
                 {
@@ -227,9 +240,9 @@ namespace ProxFramework.UI
         private static void SetWindowVisible()
         {
             bool isHideNext = false;
-            for (int i = WindowStack.Count - 1; i >= 0; i--)
+            for (int i = _windowStack.Count - 1; i >= 0; i--)
             {
-                UIWindow window = WindowStack[i];
+                UIWindow window = _windowStack[i];
                 if (isHideNext == false)
                 {
                     window.Visible = true;
@@ -246,11 +259,11 @@ namespace ProxFramework.UI
         private static void SortWindowDepth(int layer)
         {
             int depth = layer;
-            for (int i = 0; i < WindowStack.Count; i++)
+            for (int i = 0; i < _windowStack.Count; i++)
             {
-                if (WindowStack[i].WindowLayer == layer)
+                if (_windowStack[i].WindowLayer == layer)
                 {
-                    WindowStack[i].Depth = depth;
+                    _windowStack[i].Depth = depth;
                     depth += 100; //注意：每次递增100深度
                 }
             }
@@ -313,46 +326,43 @@ namespace ProxFramework.UI
             }
         }
 
-        #region IModule
 
-        public void Initialize(object userData = null)
+        public void Initialize()
         {
-            PLogger.Info("UIModule Initialize");
-            if (userData is UnityEngine.GameObject uiRoot)
+            if (_initialized)
             {
-                UIRoot = uiRoot;
-            }
-            else if (userData is UIModuleCfg cfg)
-            {
-                UIRoot = NewUIRoot(cfg);
-            }
-            else if (userData == null)
-            {
-                UIRoot = NewUIRoot(new UIModuleCfg());
+                PLogger.Warning("UIModule already initialized.");
+                return;
             }
 
+            UIRoot = NewUIRoot(new UIModuleCfg());
             _rootRectTransform = UIRoot.GetComponent<RectTransform>();
-            Initialized = true;
         }
 
-        public void Tick(float deltaTime, float unscaledDeltaTime)
+        public void Tick(float deltaTime)
         {
-            if (Initialized)
+            if (_initialized)
             {
-                foreach (var ui in WindowStack)
+                foreach (var ui in _windowStack)
                 {
-                    ui?.Update(deltaTime);
+                    ui?.InternalUpdate(deltaTime);
                 }
             }
         }
 
         public void Shutdown()
         {
+            if (!_initialized)
+            {
+                return;
+            }
+
+            CloseAll();
+            _initialized = false;
+            if (UIRoot != null)
+            {
+                Object.Destroy(UIRoot);
+            }
         }
-
-        public int Priority { get; set; }
-        public bool Initialized { get; set; }
-
-        #endregion
     }
 }
