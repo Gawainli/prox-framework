@@ -40,6 +40,7 @@ namespace ProxFramework.Editor
         {
             DrawUIFields();
             DrawButtons();
+            EditorGUILayout.LabelField($"{generateResult}");
         }
 
         private void DrawUIFields()
@@ -52,7 +53,6 @@ namespace ProxFramework.Editor
             uiCodeGeneratePath = EditorGUILayout.TextField("UI Code Generate Path", uiCodeGeneratePath);
             uiCodeNamespace = EditorGUILayout.TextField("UI Code Namespace", uiCodeNamespace);
             // setting = (UIBindGenerateSetting)EditorGUILayout.ObjectField("Setting", setting, typeof(UIBindGenerateSetting), false);
-            generateResult = EditorGUILayout.TextField("Generate Result", generateResult);
         }
 
         private void DrawButtons()
@@ -86,6 +86,7 @@ namespace ProxFramework.Editor
             {
                 genWindowResult = InternalGenerateWindowCode();
             }
+
             generateResult = $"Generate Bind Code Result:{genBindResult} Generate Window Code Result:{genWindowResult}";
             SaveSetting();
         }
@@ -231,7 +232,7 @@ namespace ProxFramework.Editor
             var genPath = $"{uiCodeGeneratePath}/{className}.cs";
             if (File.Exists(Application.dataPath.Replace("Assets", "") + genPath))
             {
-                Debug.LogWarning($"{genPath} is already exist!");
+                Debug.LogWarning($"{genPath} is already exist! skip generate");
                 return false;
             }
 
