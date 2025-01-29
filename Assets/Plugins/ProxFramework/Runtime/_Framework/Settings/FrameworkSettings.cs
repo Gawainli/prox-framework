@@ -9,7 +9,7 @@ namespace ProxFramework.Runtime.Settings
     public class FrameworkSettings : ScriptableObject
     {
         public int targetFrameRate = 60;
-        public EPlayMode assetPlayMode;
+        public EPlayMode runtimePlayMode;
         public EPlayMode editorPlayMode;
         public AssetSettings assetSettings;
         public HCLRSettings hclrSettings;

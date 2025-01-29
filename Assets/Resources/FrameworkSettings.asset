@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60
-  assetPlayMode: 1
+  runtimePlayMode: 1
   editorPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
