@@ -13,10 +13,6 @@ namespace GameName.Runtime
             _bootStateMachine.Start<StateLaunch>();
         }
 
-        private void Update()
-        {
-        }
-
         private void InitBootState()
         {
             _bootStateMachine = StateMachine.Create(this);

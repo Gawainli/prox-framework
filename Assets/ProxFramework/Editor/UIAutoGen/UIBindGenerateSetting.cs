@@ -1,6 +1,5 @@
-﻿#if UNITY_EDITOR && ODIN_INSPECTOR
+﻿#if UNITY_EDITOR
 using System;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace ProxFramework.Editor
@@ -9,16 +8,21 @@ namespace ProxFramework.Editor
     [CreateAssetMenu(fileName = "UIBindGenerateSetting", menuName = "Prox/UIBindGenerateSetting")]
     public class UIBindGenerateSetting : ScriptableObject
     {
-        [BoxGroup("Config")] [Sirenix.OdinInspector.FilePath(Extensions = "cs", RequireExistingPath = true)]
+        [Header("Config")]
+        [Tooltip("Path to the UI Window Code Template")]
         public string uiWindowCodeTemplatePath;
 
-        [BoxGroup("Config")] [Sirenix.OdinInspector.FilePath(Extensions = "cs", RequireExistingPath = true)]
+        [Header("Config")]
+        [Tooltip("Path to the UI Window Gen Template")]
         public string uiWindowGenTemplatePath;
 
-        [BoxGroup("Config")] [FolderPath(RequireExistingPath = true)]
+        [Header("Config")]
+        [Tooltip("Path to the UI Code Generate Directory")]
         public string uiCodeGeneratePath;
 
-        [BoxGroup("Config")] public string uiCodeNamespace;
+        [Header("Config")]
+        [Tooltip("Namespace for the generated UI Code")]
+        public string uiCodeNamespace;
     }
 }
 #endif

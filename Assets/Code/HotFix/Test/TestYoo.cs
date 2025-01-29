@@ -1,45 +1,47 @@
-using System;
 using Cysharp.Threading.Tasks;
 using ProxFramework.Asset;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TestYoo : MonoBehaviour
+namespace Prox.GameName.HotFix
 {
-    public RawImage rawImage;
-    public Button button;
-
-    private void Awake()
+    public class TestYoo : MonoBehaviour
     {
-        button.onClick.AddListener(ReleaseTexture);
-    }
+        public RawImage rawImage;
+        public Button button;
 
-    // Start is called before the first frame update
-    private async void Start()
-    {
-        var tex = await AssetModule.LoadAssetAsync<Texture2D>("Assets/AssetsArt/UI/test.jpg");
+        private void Awake()
+        {
+            button.onClick.AddListener(ReleaseTexture);
+        }
 
-        Debug.Log(tex.GetHashCode());
-        await AssetModule.UnloadUnusedAssets();
-        // var tex2 = await AssetModule.LoadAssetAsync<Texture2D>("Assets/AssetsArt/UI/test.jpg");
-        var tex2 = UnityEngine.Object.Instantiate(tex);
-        Debug.Log(tex2.GetHashCode());
+        // Start is called before the first frame update
+        private async void Start()
+        {
+            var tex = await AssetModule.LoadAssetAsync<Texture2D>("Assets/AssetsArt/UI/test.jpg");
 
-        rawImage.texture = tex2;
-        rawImage.SetNativeSize();
-    }
+            Debug.Log(tex.GetHashCode());
+            await AssetModule.UnloadUnusedAssets();
+            // var tex2 = await AssetModule.LoadAssetAsync<Texture2D>("Assets/AssetsArt/UI/test.jpg");
+            var tex2 = UnityEngine.Object.Instantiate(tex);
+            Debug.Log(tex2.GetHashCode());
 
-    // Update is called once per frame
-    void Update()
-    {
-    }
+            rawImage.texture = tex2;
+            rawImage.SetNativeSize();
+        }
 
-    private void ReleaseTexture()
-    {
-        var tex = rawImage.texture;
-        rawImage.texture = null;
-        AssetModule.ReleaseAsset("Assets/AssetsArt/UI/test.jpg");
-        // AssetModule.ReleaseAsset(tex);
-        AssetModule.UnloadUnusedAssets().Forget();
+        // Update is called once per frame
+        void Update()
+        {
+        }
+
+        private void ReleaseTexture()
+        {
+            var tex = rawImage.texture;
+            rawImage.texture = null;
+            AssetModule.ReleaseAsset("Assets/AssetsArt/UI/test.jpg");
+            // AssetModule.ReleaseAsset(tex);
+            AssetModule.UnloadUnusedAssets().Forget();
+        }
     }
 }

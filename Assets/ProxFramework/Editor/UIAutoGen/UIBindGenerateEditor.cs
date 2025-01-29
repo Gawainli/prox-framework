@@ -1,11 +1,9 @@
-﻿#if UNITY_EDITOR && ODIN_INSPECTOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ProxFramework.UI;
-using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -14,28 +12,17 @@ using YooAsset.Editor;
 
 namespace ProxFramework.Editor
 {
-    public class UIBindGenerateEditor : OdinEditorWindow
+    public class UIBindGenerateEditor : EditorWindow
     {
         private const string KeyVariable = "//==自动化变量开始";
         private const string KeyPath = "//==自动化路径开始";
-        
-        [AssetsOnly] public GameObject uiSourceGameObject;
 
-        [BoxGroup("Config")] [Sirenix.OdinInspector.FilePath(Extensions = "cs", RequireExistingPath = true)]
+        public GameObject uiSourceGameObject;
         public string uiWindowCodeTemplatePath;
-
-        [BoxGroup("Config")] [Sirenix.OdinInspector.FilePath(Extensions = "cs", RequireExistingPath = true)]
         public string uiWindowGenTemplatePath;
-
-        [BoxGroup("Config")] [FolderPath(RequireExistingPath = true)]
         public string uiCodeGeneratePath;
-
-        [BoxGroup("Config")] public string uiCodeNamespace;
-        
-        [BoxGroup("Config")] [SerializeField] [InlineButton("SaveSetting")]
+        public string uiCodeNamespace;
         public UIBindGenerateSetting setting;
-
-        [BoxGroup("Result")] [HideLabel] [DisplayAsString]
         public string generateResult = "no result";
 
         [MenuItem("Prox/UI/Generate UIBind Code")]
@@ -44,7 +31,44 @@ namespace ProxFramework.Editor
             GetWindow<UIBindGenerateEditor>("UIBind Generate");
         }
 
-        protected override void Initialize()
+        private void OnEnable()
+        {
+            Initialize();
+        }
+
+        private void OnGUI()
+        {
+            DrawUIFields();
+            DrawButtons();
+        }
+
+        private void DrawUIFields()
+        {
+            uiSourceGameObject = (GameObject)EditorGUILayout.ObjectField("UI Source GameObject", uiSourceGameObject,
+                typeof(GameObject), true);
+            uiWindowCodeTemplatePath =
+                EditorGUILayout.TextField("UI Window Code Template Path", uiWindowCodeTemplatePath);
+            uiWindowGenTemplatePath = EditorGUILayout.TextField("UI Window Gen Template Path", uiWindowGenTemplatePath);
+            uiCodeGeneratePath = EditorGUILayout.TextField("UI Code Generate Path", uiCodeGeneratePath);
+            uiCodeNamespace = EditorGUILayout.TextField("UI Code Namespace", uiCodeNamespace);
+            // setting = (UIBindGenerateSetting)EditorGUILayout.ObjectField("Setting", setting, typeof(UIBindGenerateSetting), false);
+            generateResult = EditorGUILayout.TextField("Generate Result", generateResult);
+        }
+
+        private void DrawButtons()
+        {
+            if (GUILayout.Button("Save Setting"))
+            {
+                SaveSetting();
+            }
+
+            if (GUILayout.Button("Generate Code"))
+            {
+                GenerateCode();
+            }
+        }
+
+        private void Initialize()
         {
             setting = SettingLoader.LoadSettingData<UIBindGenerateSetting>();
             uiWindowCodeTemplatePath = setting.uiWindowCodeTemplatePath;
@@ -53,15 +77,16 @@ namespace ProxFramework.Editor
             uiCodeNamespace = setting.uiCodeNamespace;
         }
 
-        [BoxGroup("Config")]
-        [Button(ButtonSizes.Gigantic), GUIColor(0, 1, 0)]
-        public void GenerateCode()
+        private void GenerateCode()
         {
             generateResult = "no result";
             var genBindResult = InternalGenerateBindCode();
-            var genWindowResult = InternalGenerateWindowCode();
-            generateResult =
-                $"Generate Bind Code Result:{genBindResult} Generate Window Code Result:{genWindowResult}";
+            var genWindowResult = false;
+            if (genBindResult)
+            {
+                genWindowResult = InternalGenerateWindowCode();
+            }
+            generateResult = $"Generate Bind Code Result:{genBindResult} Generate Window Code Result:{genWindowResult}";
             SaveSetting();
         }
 
@@ -84,30 +109,16 @@ namespace ProxFramework.Editor
             _vNameTypesMap.Clear();
             _pathTypesMap.Clear();
             _pathNameMap.Clear();
+            if (uiSourceGameObject == null)
+            {
+                Debug.LogError("UI Source GameObject is null");
+                return false;
+            }
 
             var children = uiSourceGameObject.GetComponentsInChildren<Transform>(true);
             foreach (var child in children)
             {
-                var fullName = child.name;
-                var tmpName = fullName.Split('_');
-                if (tmpName.Length <= 1) continue;
-                if (_nameTypesMap.TryGetValue(tmpName[0], out var type))
-                {
-                    var vName = tmpName[0].ToLower() + tmpName[1];
-                    _vNameTypesMap.Add(vName, type);
-                    //get child full path
-                    var path = child.name;
-                    var parent = child.parent;
-                    while (parent != uiSourceGameObject.transform)
-                    {
-                        path = parent.name + "/" + path;
-                        parent = parent.parent;
-                    }
-
-                    _pathTypesMap.Add(path, type);
-                    _pathNameMap.Add(path, vName);
-                    Debug.Log($"add {path} : {type}");
-                }
+                ProcessChild(child);
             }
 
             if (_vNameTypesMap.Count == 0)
@@ -116,61 +127,99 @@ namespace ProxFramework.Editor
                 return false;
             }
 
-            var streamReader = new StreamReader(uiWindowGenTemplatePath, Encoding.UTF8);
-            var classText = streamReader.ReadToEnd();
-            streamReader.Close();
-            Debug.Log(classText);
+            var classText = ReadTemplate(uiWindowGenTemplatePath);
+            classText = ReplacePlaceholders(classText);
 
-            //生成
-            //自动化变量
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append("\n");
-            foreach (var item in _vNameTypesMap)
+            var className = uiSourceGameObject.name.Replace("P_", "");
+            classText = classText.Replace("UIWindowTemplate", className);
+
+            WriteToFile($"{uiCodeGeneratePath}/{className}.Gen.cs", classText);
+            return true;
+        }
+
+        private void ProcessChild(Transform child)
+        {
+            var fullName = child.name;
+            var tmpName = fullName.Split('_');
+            if (tmpName.Length <= 1) return;
+            if (_nameTypesMap.TryGetValue(tmpName[0], out var type))
             {
-                stringBuilder.Append("        public " + item.Value.Name + " " + item.Key + "; ");
-                stringBuilder.Append("\n");
+                var vName = tmpName[0].ToLower() + tmpName[1];
+                _vNameTypesMap.Add(vName, type);
+                var path = GetFullPath(child);
+                _pathTypesMap.Add(path, type);
+                _pathNameMap.Add(path, vName);
+                Debug.Log($"add {path} : {type}");
+            }
+        }
+
+        private string GetFullPath(Transform child)
+        {
+            var path = child.name;
+            var parent = child.parent;
+            while (parent != uiSourceGameObject.transform)
+            {
+                path = parent.name + "/" + path;
+                parent = parent.parent;
             }
 
-            classText = classText.Replace(KeyVariable, KeyVariable + stringBuilder.ToString());
+            return path;
+        }
 
-            //自动化路径
-            stringBuilder.Clear();
-            stringBuilder.Append("\n");
+        private string ReadTemplate(string templatePath)
+        {
+            using (var streamReader = new StreamReader(templatePath, Encoding.UTF8))
+            {
+                return streamReader.ReadToEnd();
+            }
+        }
+
+        private string ReplacePlaceholders(string classText)
+        {
+            var variableBuilder = new StringBuilder();
+            variableBuilder.Append("\n");
+            foreach (var item in _vNameTypesMap)
+            {
+                variableBuilder.Append($"        public {item.Value.Name} {item.Key}; \n");
+            }
+
+            classText = classText.Replace(KeyVariable, KeyVariable + variableBuilder.ToString());
+
+            var pathBuilder = new StringBuilder();
+            pathBuilder.Append("\n");
             foreach (var item in _pathTypesMap)
             {
                 var path = item.Key;
                 var type = item.Value;
                 var vName = _pathNameMap[path];
-                stringBuilder.Append("            " + vName + " = Q<" + type.Name + ">(\"" + path + "\"); ");
-                stringBuilder.Append("\n");
+                pathBuilder.Append($"            {vName} = Q<{type.Name}>(\"{path}\"); \n");
             }
 
-            classText = classText.Replace(KeyPath, KeyPath + stringBuilder.ToString());
+            classText = classText.Replace(KeyPath, KeyPath + pathBuilder.ToString());
 
-            //命名空间/类名
             if (!string.IsNullOrEmpty(uiCodeNamespace))
             {
                 classText = classText.Replace("ProxFramework.UI.Template", uiCodeNamespace);
             }
 
-            var className = uiSourceGameObject.name.Replace("P_", "");
-            classText = classText.Replace("UIWindowTemplate", className);
+            return classText;
+        }
 
-            //写入
-            var genPath =
-                Application.dataPath.Replace("Assets", "") + $"{uiCodeGeneratePath}/{className}.Gen.cs";
-            var streamWriter = new StreamWriter(genPath, false, Encoding.UTF8);
-            streamWriter.Write(classText);
-            streamWriter.Close();
+        private void WriteToFile(string path, string content)
+        {
+            var fullPath = Application.dataPath.Replace("Assets", "") + path;
+            using (var streamWriter = new StreamWriter(fullPath, false, Encoding.UTF8))
+            {
+                streamWriter.Write(content);
+            }
+
             AssetDatabase.Refresh();
-            return true;
         }
 
         private bool InternalGenerateWindowCode()
         {
-            var streamReader = new StreamReader(uiWindowCodeTemplatePath, Encoding.UTF8);
-            var classText = streamReader.ReadToEnd();
-            //命名空间/类名
+            var classText = ReadTemplate(uiWindowCodeTemplatePath);
+
             if (!string.IsNullOrEmpty(uiCodeNamespace))
             {
                 classText = classText.Replace("ProxFramework.UI.Template", uiCodeNamespace);
@@ -179,21 +228,14 @@ namespace ProxFramework.Editor
             var className = uiSourceGameObject.name.Replace("P_", "");
             classText = classText.Replace("UIWindowTemplate", className);
 
-            //写入
-            var genPath =
-                Application.dataPath.Replace("Assets", "") + $"{uiCodeGeneratePath}/{className}.cs";
-            if (File.Exists(genPath))
+            var genPath = $"{uiCodeGeneratePath}/{className}.cs";
+            if (File.Exists(Application.dataPath.Replace("Assets", "") + genPath))
             {
                 Debug.LogWarning($"{genPath} is already exist!");
                 return false;
             }
 
-            var streamWriter = new StreamWriter(genPath, false, Encoding.UTF8);
-            streamWriter.Write(classText);
-            streamWriter.Close();
-            AssetDatabase.Refresh();
-
-            streamReader.Close();
+            WriteToFile(genPath, classText);
             return true;
         }
 
