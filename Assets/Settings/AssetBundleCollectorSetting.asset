@@ -29,7 +29,7 @@ MonoBehaviour:
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/AssetsArt
+      - CollectPath: Assets/_Game/Art
         CollectorGUID: 51d5e1b22b868d9488bb31b24603df6d
         CollectorType: 0
         AddressRuleName: AddressDisable
@@ -37,7 +37,7 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-      - CollectPath: Assets/_Scenes
+      - CollectPath: Assets/_Game/Scenes
         CollectorGUID: 3f5ed0238e316a6468cab06518245531
         CollectorType: 0
         AddressRuleName: AddressByFileName
@@ -58,7 +58,7 @@ MonoBehaviour:
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/AssetsRaw
+      - CollectPath: Assets/_Game/Raw
         CollectorGUID: bc9712a140312b14cb3ed6abec77c0cf
         CollectorType: 0
         AddressRuleName: AddressByFileName

@@ -38,7 +38,7 @@ MonoBehaviour:
     assemblyBytesAssetExtension: 
   uiSettings:
     pixelPerfect: 0
-    matchWidthOrHeight: 0
+    matchWidthOrHeight: 1
     referenceResolutionX: 1920
     referenceResolutionY: 1080
-    ignoreReversedGraphics: 0
+    ignoreReversedGraphics: 1
