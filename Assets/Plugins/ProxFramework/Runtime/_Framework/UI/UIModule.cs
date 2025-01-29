@@ -111,9 +111,15 @@ namespace ProxFramework.UI
             _windowStack.Clear();
         }
 
-        private static GameObject NewUIRoot(UISettings uiSettings)
+        private static GameObject GetUIRootOrCreate(UISettings uiSettings)
         {
-            var root = new GameObject("UIRoot");
+            if (UIRoot != null)
+            {
+                return UIRoot;
+            }
+            
+            PLogger.Info("Create UIRootCanvas");
+            var root = new GameObject("UIRootCanvas");
             var canvas = root.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.pixelPerfect = uiSettings.pixelPerfect;
@@ -325,7 +331,7 @@ namespace ProxFramework.UI
         }
 
 
-        public static void Initialize()
+        public static void Initialize(GameObject uiRoot = null)
         {
             if (_initialized)
             {
@@ -333,7 +339,7 @@ namespace ProxFramework.UI
                 return;
             }
 
-            UIRoot = NewUIRoot(SettingsUtil.GlobalSettings.uiSettings);
+            UIRoot = uiRoot??GetUIRootOrCreate(SettingsUtil.GlobalSettings.uiSettings);
             _rootRectTransform = UIRoot.GetComponent<RectTransform>();
         }
 

@@ -15,7 +15,7 @@ namespace ProxFramework.Base
             StateMachineModule.Initialize();
             AssetModule.Initialize();
             NetworkModule.Initialize();
-            UIModule.Initialize();
+            UIModule.Initialize(transform.Find("UIRootCanvas").gameObject);
         }
 
         private void Update()
