@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6457e05fa9b6d445bd5756371ed1bc7, type: 3}
   m_Name: UIBindGenerateSetting
   m_EditorClassIdentifier: 
-  uiWindowCodeTemplatePath: Assets/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.cs.template
-  uiWindowGenTemplatePath: Assets/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.Gen.cs.template
-  uiCodeGeneratePath: Assets/Code/HotFix/UI
+  uiWindowCodeTemplatePath: Assets/Plugins/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.cs.template
+  uiWindowGenTemplatePath: Assets/Plugins/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.Gen.cs.template
+  uiCodeGeneratePath: Assets/_Game/Code/HotFix/UI
   uiCodeNamespace: Prox.GameName.UI
