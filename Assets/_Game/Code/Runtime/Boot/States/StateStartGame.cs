@@ -12,7 +12,7 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            SceneModule.ChangeTopSceneAsync("Assets/_Game/Scenes/TestYoo.unity").Forget();
+            SceneModule.ChangeTopSceneAsync("Assets/_Game/Scenes/Main.unity").Forget();
         }
 
         public override void Exit()

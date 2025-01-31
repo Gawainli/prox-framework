@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1452262861155556252}
   - component: {fileID: 4437714580453055957}
   m_Layer: 5
-  m_Name: Raw_Test
+  m_Name: '@Raw_Test'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 3337209800211391568}
   - component: {fileID: 4949321304991929049}
   m_Layer: 5
-  m_Name: Btn_ReleaseTex
+  m_Name: '@Btn_ReleaseTex'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -340,7 +340,7 @@ GameObject:
   - component: {fileID: 6819686289556888105}
   - component: {fileID: 7007067872460976371}
   m_Layer: 5
-  m_Name: Btn_LoadTex
+  m_Name: '@Btn_LoadTex'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
