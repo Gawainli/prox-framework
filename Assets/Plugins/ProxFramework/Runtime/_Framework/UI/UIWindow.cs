@@ -15,6 +15,7 @@ namespace ProxFramework.UI
         public const int WindowDepthStep = 10;
 
         private AssetHandle _assetHandle;
+        private string _location;
         private bool _isCreate = false;
         private GameObject _panel;
         private Canvas _canvas;
@@ -274,7 +275,7 @@ namespace ProxFramework.UI
             _isCreate = false;
             _prepareCallback = null;
 
-            _assetHandle?.Release();
+            AssetModule.ReleaseAsset(_assetHandle.AssetObject);
             _assetHandle = null;
 
             if (_panel == null) return;

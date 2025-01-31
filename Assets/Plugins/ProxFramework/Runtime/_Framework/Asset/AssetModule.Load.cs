@@ -32,7 +32,7 @@ namespace ProxFramework.Asset
             {
                 return null;
             }
-
+            
             if (typeof(T) == typeof(AssetHandle))
             {
                 var assetHandle = isAsync ? package.LoadAssetAsync(location) : package.LoadAssetSync(location);
@@ -184,19 +184,6 @@ namespace ProxFramework.Asset
             {
                 await handle.UnloadAsync();
                 _mapSceneToHandle.Remove(sceneName);
-            }
-        }
-
-        public static void ReleaseAsset(string location)
-        {
-            if (_mapLocationToHandle.TryGetValue(location, out var handle))
-            {
-                handle.Release();
-                _mapLocationToHandle.Remove(location);
-            }
-            else
-            {
-                PLogger.Warning($"Cannot find package by location:{location}");
             }
         }
 
