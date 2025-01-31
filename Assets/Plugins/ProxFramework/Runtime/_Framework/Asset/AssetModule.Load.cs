@@ -18,7 +18,14 @@ namespace ProxFramework.Asset
         {
             if (_mapLocationToHandle.TryGetValue(location, out var handle))
             {
-                return handle as T;
+                if (handle.Status == EOperationStatus.None)
+                {
+                    _mapLocationToHandle.Remove(location);
+                }
+                else
+                {
+                    return handle as T;
+                }
             }
 
             if (!TryGetContainsPackage(location, out var package))
@@ -214,10 +221,10 @@ namespace ProxFramework.Asset
                 return;
             }
 
-            if (_mapObjectToHandle.TryGetValue(assetObject, out var handle))
+            if (_mapObjectToHandle.Remove(assetObject, out var handle))
             {
+                _mapLocationToHandle.Remove(handle.GetAssetInfo().AssetPath);
                 handle.Release();
-                _mapObjectToHandle.Remove(assetObject);
             }
         }
 
