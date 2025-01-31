@@ -1,6 +1,7 @@
 ﻿using UnityEngine.UI;
 using ProxFramework.UI;
 using TMPro;
+using UnityEngine;
 
 namespace ProxFramework.UI.Template
 {

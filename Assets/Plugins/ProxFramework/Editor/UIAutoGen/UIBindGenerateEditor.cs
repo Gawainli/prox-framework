@@ -93,12 +93,13 @@ namespace ProxFramework.Editor
 
         private readonly Dictionary<string, Type> _nameTypesMap = new Dictionary<string, Type>()
         {
-            { "Btn", typeof(Button) },
-            { "BtnEx", typeof(ButtonEx) },
-            { "Raw", typeof(RawImage) },
-            { "Img", typeof(Image) },
-            { "Text", typeof(TMP_Text) },
-            { "Input", typeof(TMP_InputField) }
+            { "@Btn", typeof(Button) },
+            { "@BtnEx", typeof(ButtonEx) },
+            { "@Raw", typeof(RawImage) },
+            { "@Img", typeof(Image) },
+            { "@Text", typeof(TMP_Text) },
+            { "@Input", typeof(TMP_InputField) },
+            { "@Obj", typeof(GameObject) }
         };
 
         private readonly Dictionary<string, Type> _vNameTypesMap = new Dictionary<string, Type>();
@@ -124,8 +125,7 @@ namespace ProxFramework.Editor
 
             if (_vNameTypesMap.Count == 0)
             {
-                Debug.LogError("No UI Component Found");
-                return false;
+                Debug.LogWarning("No UI Component Found");
             }
 
             var classText = ReadTemplate(uiWindowGenTemplatePath);
@@ -193,7 +193,14 @@ namespace ProxFramework.Editor
                 var path = item.Key;
                 var type = item.Value;
                 var vName = _pathNameMap[path];
-                pathBuilder.Append($"            {vName} = Q<{type.Name}>(\"{path}\"); \n");
+                if (type == typeof(GameObject))
+                {
+                    pathBuilder.Append($"            {vName} = Q(\"{path}\").gameObject; \n");
+                }
+                else
+                {
+                    pathBuilder.Append($"            {vName} = Q<{type.Name}>(\"{path}\"); \n");
+                }
             }
 
             classText = classText.Replace(KeyPath, KeyPath + pathBuilder.ToString());
