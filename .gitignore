@@ -90,3 +90,6 @@ Thumbs.db.meta
 
 # build
 /[Bb]uild/
+HybridCLRData
+Assets/HybridCLRGenerate
+Assets/HybridCLRGenerate.meta
