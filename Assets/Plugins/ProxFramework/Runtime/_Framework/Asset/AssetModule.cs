@@ -50,7 +50,7 @@ namespace ProxFramework.Asset
 #if UNITY_EDITOR
                 _playMode = SettingsUtil.GlobalSettings.editorPlayMode;
 #else
-                _playMode = SettingsUtil.GlobalSettings.assetPlayMode;
+                _playMode = SettingsUtil.GlobalSettings.runtimePlayMode;
 #endif
                 return _playMode;
             }
