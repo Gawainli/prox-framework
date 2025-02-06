@@ -14,8 +14,8 @@ namespace GameName.Runtime
         private long _currentDownloadedBytes;
         private long _totalDownloadBytes;
 
-        private int _currentPackageDownloadCount;
-        private long _currentPackageDownloadBytes;
+        private int _perPackageDownloadCount;
+        private long _pertPackageDownloadBytes;
 
         public override void Init()
         {
@@ -23,7 +23,8 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
-            var downloaderOpList = fsm.Blackboard.GetObjectValue<List<ResourceDownloaderOperation>>("totalDownloaderOp");
+            var downloaderOpList =
+                fsm.Blackboard.GetObjectValue<List<ResourceDownloaderOperation>>("totalDownloaderOp");
             foreach (var op in downloaderOpList)
             {
                 _totalDownloadCount += op.TotalDownloadCount;
@@ -33,6 +34,10 @@ namespace GameName.Runtime
             var downloadResult = await BeginDownload(downloaderOpList);
             if (downloadResult)
             {
+#if UNITY_EDITOR
+                await UniTask.WaitForSeconds(3f);
+                UnityEditor.EditorUtility.ClearProgressBar();
+#endif
                 ChangeState<StatePatchDone>();
             }
         }
@@ -68,13 +73,17 @@ namespace GameName.Runtime
 
         private void OnDownloadFinishCallback(DownloaderFinishData data)
         {
-            _currentDownloadedCount += _currentPackageDownloadCount;
-            _currentDownloadedBytes += _currentPackageDownloadBytes;
-            _currentPackageDownloadCount = 0;
-            _currentPackageDownloadBytes = 0;
+            _currentDownloadedCount += _perPackageDownloadCount;
+            _currentDownloadedBytes += _pertPackageDownloadBytes;
+            _perPackageDownloadCount = 0;
+            _pertPackageDownloadBytes = 0;
 
             PLogger.Info(
                 $"download package {data.PackageName} complete: {_currentDownloadedCount}/{_totalDownloadCount}, {_currentDownloadedBytes}/{_totalDownloadBytes}");
+            if (_currentDownloadedCount == _totalDownloadCount)
+            {
+                PLogger.Info("all download complete");
+            }
         }
 
         public void OnDownloadErrorCallback(DownloadErrorData errorData)
@@ -84,10 +93,16 @@ namespace GameName.Runtime
 
         public void OnDownloadProgress(DownloadUpdateData updateData)
         {
-            _currentPackageDownloadCount = updateData.TotalDownloadCount;
-            _currentPackageDownloadBytes = updateData.TotalDownloadBytes;
+            _perPackageDownloadCount = updateData.TotalDownloadCount;
+            _pertPackageDownloadBytes = updateData.TotalDownloadBytes;
             PLogger.Info(
-                $" download progress: {_currentDownloadedCount + _currentPackageDownloadCount}/{_totalDownloadCount}, {_currentDownloadedBytes + _currentPackageDownloadBytes}/{_totalDownloadBytes}");
+                $" download progress: {_currentDownloadedCount + _perPackageDownloadCount}/{_totalDownloadCount}, {_currentDownloadedBytes + _pertPackageDownloadBytes}/{_totalDownloadBytes}");
+
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.DisplayProgressBar("下载资源", $"下载资源中... {updateData.PackageName}",
+                (float)(_currentDownloadedBytes + _pertPackageDownloadBytes) / _totalDownloadBytes);
+#endif
         }
     }
 }
