@@ -1,12 +1,11 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace ProxFramework.Editor
 {
     public class ProxSettingsEditor : EditorWindow
     {
-        private const string SettingsPath = "Assets/Resources/FrameworkSettings.asset";
+        private const string SettingsAssetPath = "Assets/Resources/FrameworkSettings.asset";
         private Runtime.Settings.FrameworkSettings _settings;
         private UnityEditor.Editor _editor;
 
@@ -21,11 +20,11 @@ namespace ProxFramework.Editor
         private void OnEnable()
         {
             // Load settings
-            _settings = AssetDatabase.LoadAssetAtPath<Runtime.Settings.FrameworkSettings>(SettingsPath);
+            _settings = AssetDatabase.LoadAssetAtPath<Runtime.Settings.FrameworkSettings>(SettingsAssetPath);
             if (_settings == null)
             {
                 _settings = ScriptableObject.CreateInstance<Runtime.Settings.FrameworkSettings>();
-                AssetDatabase.CreateAsset(_settings, SettingsPath);
+                AssetDatabase.CreateAsset(_settings, SettingsAssetPath);
                 AssetDatabase.SaveAssets();
             }
 
@@ -39,7 +38,7 @@ namespace ProxFramework.Editor
                 return;
             }
 
-            EditorGUILayout.LabelField($"Settings Path: {SettingsPath}");
+            EditorGUILayout.LabelField($"Settings Path: {SettingsAssetPath}");
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             _editor.OnInspectorGUI();
 
