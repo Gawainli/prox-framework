@@ -93,3 +93,6 @@ Thumbs.db.meta
 HybridCLRData
 Assets/HybridCLRGenerate
 Assets/HybridCLRGenerate.meta
+update_bundles
+Assets/Resources/update_bundles.meta
+Assets/StreamingAssets/update_bundles.meta
