@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+
+using UnityEditor;
 using UnityEngine;
 
 namespace ProxFramework.Editor
@@ -50,3 +52,4 @@ namespace ProxFramework.Editor
         }
     }
 }
+#endif
