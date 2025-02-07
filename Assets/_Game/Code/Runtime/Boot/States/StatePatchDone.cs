@@ -11,6 +11,10 @@ namespace GameName.Runtime
 
         public override async void Enter()
         {
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.ClearProgressBar();
+#endif
+            fsm.Blackboard.ClearAll();
             foreach (var pkg in AssetModule.GetAllPackages())
             {
                 await AssetModule.ClearUnusedCacheFilesAsync(pkg.PackageName);

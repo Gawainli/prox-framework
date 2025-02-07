@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using ProxFramework.Asset;
+﻿using ProxFramework.Asset;
 using ProxFramework.StateMachine;
-using YooAsset;
 
 namespace GameName.Runtime
 {
@@ -13,23 +11,14 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            var downloaderOpList = new List<ResourceDownloaderOperation>();
-            foreach (var pkg in AssetModule.GetAllPackages())
-            {
-                var op = AssetModule.CreateResourceDownloader(pkg.PackageName);
-                if (op.TotalDownloadCount > 0)
-                {
-                    downloaderOpList.Add(op);
-                }
-            }
-
-            if (downloaderOpList.Count == 0)
+            var patchOp = AssetModule.CreatePatchAsyncOperation();
+            if (patchOp.totalDownloadCount == 0)
             {
                 ChangeState<StatePatchDone>();
             }
             else
             {
-                fsm.Blackboard.SetObjectValue("totalDownloaderOp",downloaderOpList);
+                fsm.Blackboard.SetObjectValue("patchOp", patchOp);
                 ChangeState<StateDownloadFile>();
             }
         }

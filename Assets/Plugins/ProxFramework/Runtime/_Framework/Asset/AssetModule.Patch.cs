@@ -1,4 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using YooAsset;
 
 namespace ProxFramework.Asset
@@ -13,8 +15,8 @@ namespace ProxFramework.Asset
             return package == null ? string.Empty : package.GetPackageVersion();
         }
 
-        public static async UniTask<RequestPackageVersionOperation> UpdatePackageVersionAsync(bool appendTimeTicks = false, int timeout = 60,
-            
+        public static async UniTask<RequestPackageVersionOperation> UpdatePackageVersionAsync(
+            bool appendTimeTicks = false, int timeout = 60,
             string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
@@ -55,9 +57,28 @@ namespace ProxFramework.Asset
                 var op = pkg.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
                 downloadOp.Combine(op);
             }
+
             return downloadOp;
         }
-        
+
+        public static PatchAsyncOperation CreatePatchAsyncOperation()
+        {
+            var downloaderOpList = new List<ResourceDownloaderOperation>();
+
+            foreach (var pkg in GetAllPackages())
+            {
+                var op = pkg.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+                if (op.TotalDownloadCount == 0)
+                {
+                    continue;
+                }
+
+                downloaderOpList.Add(op);
+            }
+
+            return new PatchAsyncOperation(downloaderOpList);
+        }
+
         public static async UniTask<ClearCacheFilesOperation> ClearUnusedCacheFilesAsync(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
