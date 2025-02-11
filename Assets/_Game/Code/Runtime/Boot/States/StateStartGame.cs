@@ -1,6 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using ProxFramework.Scene;
-using ProxFramework.StateMachine;
+﻿using ProxFramework.StateMachine;
 
 namespace GameName.Runtime
 {
@@ -12,7 +10,7 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            SceneModule.ChangeTopSceneAsync("Assets/_Game/Scenes/Main.unity").Forget();
+            GameAssembly.CallStatic("GameName.GameMain", "StartGame");
         }
 
         public override void Exit()
