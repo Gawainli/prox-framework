@@ -40,22 +40,6 @@ namespace ProxFramework.Asset
         private static int _downloadingMaxNum;
         private static int _failedTryAgain;
         private static Dictionary<string, ResourcePackage> _mapNameToResourcePackage = new();
-
-        private static EPlayMode _playMode;
-
-        public static EPlayMode PlayMode
-        {
-            get
-            {
-#if UNITY_EDITOR
-                _playMode = SettingsUtil.GlobalSettings.editorPlayMode;
-#else
-                _playMode = SettingsUtil.GlobalSettings.runtimePlayMode;
-#endif
-                return _playMode;
-            }
-        }
-
         public static TaskCtsModule.CtsInfo ctsInfo;
         public static CancellationToken CtsToken => ctsInfo.cts.Token;
         public static string defaultPkgName;
@@ -90,7 +74,7 @@ namespace ProxFramework.Asset
         public static async UniTask<EOperationStatus> InitPackage(AssetPackageDefine packageDefine)
         {
             var packageName = packageDefine.name;
-            var pkgPlayMode = PlayMode;
+            var pkgPlayMode = SettingsUtil.GlobalSettings.PlayMode;
             var defaultHostServer = GetHostServerURL();
             var fallbackHostServer = GetHostServerURL();
             IDecryptionServices decryptionServices = packageDefine.encryptType switch
