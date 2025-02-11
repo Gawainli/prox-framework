@@ -22,8 +22,7 @@ namespace GameName.Runtime
             {
                 foreach (var hotUpdateDllName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
                 {
-                    var assetLocation = Path.Combine("Assets",
-                        SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
+                    var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
                         $"{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
                     var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
                     LoadBytes(bytes);
@@ -49,8 +48,7 @@ namespace GameName.Runtime
 
             foreach (string aotDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
             {
-                var assetLocation = Path.Combine("Assets",
-                    SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
+                var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
                     $"{aotDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
                 PLogger.Info($"LoadMetadataAsset: [ {assetLocation} ]");
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
@@ -243,10 +241,26 @@ namespace GameName.Runtime
                 return type;
             }
 
+            PLogger.Info($"Type: {typeFullName} not found in cache, try to get from default assemblies");
             // If not found in cache, try to get type from default assemblies
             type = Type.GetType(typeFullName) ?? // Try from current AppDomain
                    Assembly.GetExecutingAssembly().GetType(typeFullName) ?? // Try from executing assembly
                    Assembly.GetCallingAssembly().GetType(typeFullName); // Try from calling assembly
+
+            if (type == null)
+            {
+                foreach (var hotUpdateName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
+                {
+                    var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                        .FirstOrDefault(a => a.GetName().Name == hotUpdateName);
+                    if (assembly == null) continue;
+                    type = assembly.GetType(typeFullName);
+                    if (type != null)
+                    {
+                        break;
+                    }
+                }
+            }
 
             if (type != null)
             {

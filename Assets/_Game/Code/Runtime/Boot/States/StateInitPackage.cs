@@ -1,6 +1,5 @@
 ﻿using ProxFramework;
 using ProxFramework.Asset;
-using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
 using YooAsset;
 

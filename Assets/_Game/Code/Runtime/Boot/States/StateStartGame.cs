@@ -10,7 +10,7 @@ namespace GameName.Runtime
 
         public override void Enter()
         {
-            GameAssembly.CallStatic("GameName.GameMain", "StartGame");
+            GameAssembly.CallStatic("GameName.GameMain.GameMain", "StartGame");
         }
 
         public override void Exit()

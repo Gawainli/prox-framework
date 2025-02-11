@@ -31,11 +31,12 @@ MonoBehaviour:
       encryptType: 0
       devHostUrl: 
   hclrSettings:
-    hotUpdateAssemblies: []
+    hotUpdateAssemblies:
+    - HotUpdate
     aotMetaAssemblies: []
-    logicMainDllName: 
-    assemblyBytesAssetDir: 
-    assemblyBytesAssetExtension: 
+    logicMainDllName: HotUpdate
+    assemblyBytesAssetDir: Assets/_Game/Raw
+    assemblyBytesAssetExtension: .dll.bytes
   uiSettings:
     pixelPerfect: 0
     matchWidthOrHeight: 1
