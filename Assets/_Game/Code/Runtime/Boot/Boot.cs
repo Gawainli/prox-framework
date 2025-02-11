@@ -24,7 +24,7 @@ namespace GameName.Runtime
             _bootStateMachine.AddState<StateCreateDownloader>();
             _bootStateMachine.AddState<StateDownloadFile>();
             _bootStateMachine.AddState<StatePatchDone>();
-            _bootStateMachine.AddState<StateLoadAssembly>();
+            _bootStateMachine.AddState<StateLoadAssemblyOld>();
             _bootStateMachine.AddState<StateStartGame>();
         }
     }
