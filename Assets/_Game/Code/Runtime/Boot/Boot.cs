@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using ProxFramework.StateMachine;
 
 namespace Prox.GameName.Runtime
@@ -6,6 +7,13 @@ namespace Prox.GameName.Runtime
     public class Boot : MonoBehaviour
     {
         private StateMachine _bootStateMachine;
+
+        private void Awake()
+        {
+#if ENABLE_HCLR
+            DisStripCode();
+#endif
+        }
 
         private void Start()
         {
@@ -24,8 +32,45 @@ namespace Prox.GameName.Runtime
             _bootStateMachine.AddState<StateCreateDownloader>();
             _bootStateMachine.AddState<StateDownloadFile>();
             _bootStateMachine.AddState<StatePatchDone>();
-            _bootStateMachine.AddState<StateLoadAssemblyOld>();
+            _bootStateMachine.AddState<StateLoadAssembly>();
             _bootStateMachine.AddState<StateStartGame>();
+        }
+
+        //防止代码被裁剪
+        //如果在主工程无引用，link.xml的防裁剪也无效。
+        private void DisStripCode()
+        {
+            //UnityEngine.Physics
+            RegisterType<Collider>();
+            RegisterType<Collider2D>();
+            RegisterType<Collision>();
+            RegisterType<Collision2D>();
+            RegisterType<CapsuleCollider2D>();
+
+            RegisterType<Rigidbody>();
+            RegisterType<Rigidbody2D>();
+        
+            RegisterType<Ray>();
+            RegisterType<Ray2D>();
+
+            //UnityEngine.Graphics
+            RegisterType<Mesh>();
+            RegisterType<MeshRenderer>();
+
+            //UnityEngine.Animation
+            RegisterType<AnimationClip>();
+            RegisterType<AnimationCurve>();
+            RegisterType<AnimationEvent>();
+            RegisterType<AnimationState>();
+            RegisterType<Animator>();
+            RegisterType<Animation>(); 
+        }
+
+        private void RegisterType<T>()
+        {
+#if UNITY_EDITOR
+            Debug.Log($"DisStripCode RegisterType :{typeof(T)}");
+#endif
         }
     }
 }

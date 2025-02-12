@@ -4,26 +4,32 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Cysharp.Threading.Tasks;
-using HybridCLR;
 using ProxFramework;
 using ProxFramework.Asset;
 using ProxFramework.Runtime.Settings;
+using YooAsset;
 
-namespace Prox.GameName123.Runtime
+#if ENABLE_HCLR
+using HybridCLR;
+#endif
+
+namespace Prox.GameName.Runtime
 {
     public static class GameAssembly
     {
         private static readonly ConcurrentDictionary<string, Assembly> _hotUpdateAssemblies = new();
         private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new();
 
+#if ENABLE_HCLR
         public static async UniTask LoadHotUpdateAssemblies()
         {
-            if (!SettingsUtil.GlobalSettings.hclrSettings.Enable) return;
+            if (!SettingsUtil.GlobalSettings.hclrSettings.Enable ||
+                SettingsUtil.GlobalSettings.PlayMode == EPlayMode.EditorSimulateMode) return;
 
             foreach (var hotUpdateDllName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
             {
-                var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
-                    $"{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
+                var assetLocation =
+                    $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
                 LoadBytes(bytes);
             }
@@ -33,7 +39,7 @@ namespace Prox.GameName123.Runtime
         /// 为Aot Assembly加载原始metadata， 这个代码放Aot或者热更新都行。
         /// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行。
         /// </summary>
-        public static async UniTaskVoid LoadMetadataForAOTAssembly()
+        public static async UniTask LoadMetadataForAOTAssembly()
         {
             // 可以加载任意aot assembly的对应的dll。但要求dll必须与unity build过程中生成的裁剪后的dll一致，而不能直接使用原始dll。
             // 我们在BuildProcessor_xxx里添加了处理代码，这些裁剪后的dll在打包时自动被复制到 {项目目录}/HybridCLRData/AssembliesPostIl2CppStrip/{Target} 目录。
@@ -44,8 +50,7 @@ namespace Prox.GameName123.Runtime
 
             foreach (string aotDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
             {
-                var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
-                    $"{aotDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
+                var assetLocation = $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{aotDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
                 PLogger.Info($"LoadMetadataAsset: [ {assetLocation} ]");
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
 
@@ -60,6 +65,12 @@ namespace Prox.GameName123.Runtime
                     throw;
                 }
             }
+        }
+        
+        private static void RemoveAssembly(string assemblyName)
+        {
+#if UNITY_EDITOR
+#endif
         }
 
         public static void LoadBytes(byte[] bytes)
@@ -94,7 +105,29 @@ namespace Prox.GameName123.Runtime
             }
         }
 
-        public static T CreateInstance<T>(object[] args = null)
+#endif
+        public static Type GetHotUpdateType(string typeFullName)
+        {
+            if (_cachedTypes.TryGetValue(typeFullName, out var type))
+            {
+                return type;
+            }
+
+            foreach (var assembly in _hotUpdateAssemblies.Values)
+            {
+                type = assembly.GetType(typeFullName);
+                if (type != null)
+                {
+                    _cachedTypes.TryAdd(typeFullName, type);
+                    return type;
+                }
+            }
+
+            PLogger.Error($"Type {typeFullName} not found in cached types or hot update assemblies");
+            return null;
+        }
+        
+        public static object CreateInstance<T>(object[] args = null)
         {
             args ??= Array.Empty<object>();
 
@@ -107,7 +140,7 @@ namespace Prox.GameName123.Runtime
                     return default;
                 }
 
-                return (T)Activator.CreateInstance(type, args);
+                return Activator.CreateInstance(type, args);
             }
             catch (MissingMethodException ex)
             {

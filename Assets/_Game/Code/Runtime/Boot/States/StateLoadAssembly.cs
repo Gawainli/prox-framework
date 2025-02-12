@@ -1,6 +1,5 @@
 ﻿using System;
 using ProxFramework;
-using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
 
 namespace Prox.GameName.Runtime
@@ -16,14 +15,13 @@ namespace Prox.GameName.Runtime
             try
             {
                 PLogger.Info("StateLoadAssembly");
-                if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
-                {
+#if ENABLE_HCLR
 #if !UNITY_EDITOR
-                    await GameAssembly.LoadMetadataForAOTAssembly();
+                await GameAssembly.LoadMetadataForAOTAssembly();
 #endif
-                    await GameAssembly.LoadHotUpdateAssemblies();
-                    ChangeState<StateStartGame>();
-                }
+                await GameAssembly.LoadHotUpdateAssemblies();
+#endif
+                ChangeState<StateStartGame>();
             }
             catch (Exception e)
             {
