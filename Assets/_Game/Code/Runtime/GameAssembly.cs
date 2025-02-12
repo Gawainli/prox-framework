@@ -9,7 +9,7 @@ using ProxFramework;
 using ProxFramework.Asset;
 using ProxFramework.Runtime.Settings;
 
-namespace GameName.Runtime
+namespace Prox.GameName123.Runtime
 {
     public static class GameAssembly
     {
@@ -18,15 +18,14 @@ namespace GameName.Runtime
 
         public static async UniTask LoadHotUpdateAssemblies()
         {
-            if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
+            if (!SettingsUtil.GlobalSettings.hclrSettings.Enable) return;
+
+            foreach (var hotUpdateDllName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
             {
-                foreach (var hotUpdateDllName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
-                {
-                    var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
-                        $"{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
-                    var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
-                    LoadBytes(bytes);
-                }
+                var assetLocation = Path.Combine(SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir,
+                    $"{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}");
+                var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
+                LoadBytes(bytes);
             }
         }
 
@@ -41,10 +40,7 @@ namespace GameName.Runtime
 
             // 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
             // 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-            if (SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies.Length == 0)
-            {
-                return;
-            }
+            if (SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies.Length == 0) return;
 
             foreach (string aotDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
             {
@@ -104,7 +100,6 @@ namespace GameName.Runtime
 
             try
             {
-                // Get type from cached types or default assemblies
                 var type = GetTypeFromCacheOrDefault(typeof(T).FullName);
                 if (type == null)
                 {
@@ -112,7 +107,6 @@ namespace GameName.Runtime
                     return default;
                 }
 
-                // Create instance
                 return (T)Activator.CreateInstance(type, args);
             }
             catch (MissingMethodException ex)
@@ -129,24 +123,15 @@ namespace GameName.Runtime
 
         public static object CallStatic(string typeFullName, string funcName, object[] args = null)
         {
-            if (string.IsNullOrEmpty(typeFullName))
+            if (string.IsNullOrEmpty(typeFullName) || string.IsNullOrEmpty(funcName))
             {
-                throw new ArgumentNullException(nameof(typeFullName), "Type name cannot be null or empty.");
+                throw new ArgumentNullException("Type name and method name cannot be null or empty.");
             }
 
-            if (string.IsNullOrEmpty(funcName))
-            {
-                throw new ArgumentNullException(nameof(funcName), "Method name cannot be null or empty.");
-            }
-
-            if (args == null)
-            {
-                args = Array.Empty<object>();
-            }
+            args ??= Array.Empty<object>();
 
             try
             {
-                // Get type from cached types or default assemblies
                 var type = GetTypeFromCacheOrDefault(typeFullName);
                 if (type == null)
                 {
@@ -154,7 +139,6 @@ namespace GameName.Runtime
                     throw new TypeLoadException($"Type {typeFullName} not found in cached types or default assemblies");
                 }
 
-                // Find the method with the correct name and parameter types
                 var method = type.GetMethod(funcName, BindingFlags.Static | BindingFlags.Public, null,
                     args.Select(a => a?.GetType() ?? typeof(object)).ToArray(), null);
 
@@ -164,11 +148,7 @@ namespace GameName.Runtime
                     throw new MissingMethodException($"Method {funcName} not found in type {type.FullName}");
                 }
 
-                // Invoke the method with the provided arguments
-                var result = method.Invoke(null, args);
-
-                // Cast the result to the expected return type
-                return result;
+                return method.Invoke(null, args);
             }
             catch (TargetInvocationException ex)
             {
@@ -184,68 +164,20 @@ namespace GameName.Runtime
 
         public static object CallStatic<T>(string funcName, object[] args = null)
         {
-            if (string.IsNullOrEmpty(funcName))
-            {
-                throw new ArgumentNullException(nameof(funcName), "Method name cannot be null or empty.");
-            }
-
-            if (args == null)
-            {
-                args = Array.Empty<object>();
-            }
-
-            try
-            {
-                // Get type from cached types or default assemblies
-                var type = GetTypeFromCacheOrDefault(typeof(T).FullName);
-                if (type == null)
-                {
-                    PLogger.Error($"Type {typeof(T).FullName} not found in cached types or default assemblies");
-                    throw new TypeLoadException(
-                        $"Type {typeof(T).FullName} not found in cached types or default assemblies");
-                }
-
-                // Find the method with the correct name and parameter types
-                var method = type.GetMethod(funcName, BindingFlags.Static | BindingFlags.Public, null,
-                    args.Select(a => a?.GetType() ?? typeof(object)).ToArray(), null);
-
-                if (method == null)
-                {
-                    PLogger.Error($"Method {funcName} not found in type {type.FullName}");
-                    throw new MissingMethodException($"Method {funcName} not found in type {type.FullName}");
-                }
-
-                // Invoke the method with the provided arguments
-                var result = method.Invoke(null, args);
-
-                // Cast the result to the expected return type
-                return result;
-            }
-            catch (TargetInvocationException ex)
-            {
-                PLogger.Error($"Method invocation failed: {ex.InnerException?.Message}");
-                throw ex.InnerException ?? ex;
-            }
-            catch (Exception ex)
-            {
-                PLogger.Error($"CallStatic failed: {ex.Message}");
-                throw;
-            }
+            return CallStatic(typeof(T).FullName, funcName, args);
         }
 
         private static Type GetTypeFromCacheOrDefault(string typeFullName)
         {
-            // Try to get type from cached types
             if (_cachedTypes.TryGetValue(typeFullName, out var type))
             {
                 return type;
             }
 
             PLogger.Info($"Type: {typeFullName} not found in cache, try to get from default assemblies");
-            // If not found in cache, try to get type from default assemblies
-            type = Type.GetType(typeFullName) ?? // Try from current AppDomain
-                   Assembly.GetExecutingAssembly().GetType(typeFullName) ?? // Try from executing assembly
-                   Assembly.GetCallingAssembly().GetType(typeFullName); // Try from calling assembly
+            type = Type.GetType(typeFullName) ??
+                   Assembly.GetExecutingAssembly().GetType(typeFullName) ??
+                   Assembly.GetCallingAssembly().GetType(typeFullName);
 
             if (type == null)
             {
@@ -264,7 +196,6 @@ namespace GameName.Runtime
 
             if (type != null)
             {
-                // Cache the type for future use
                 _cachedTypes.TryAdd(typeFullName, type);
             }
 
