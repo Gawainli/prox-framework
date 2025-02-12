@@ -1,7 +1,8 @@
 ﻿using ProxFramework.Asset;
+using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StatePatchDone : State
     {
@@ -20,11 +21,14 @@ namespace GameName.Runtime
                 await AssetModule.ClearUnusedCacheFilesAsync(pkg.PackageName);
             }
 
-#if ENABLE_HYBRIDCLR
-            ChangeState<StateLoadAssembly>();
-#else
-            ChangeState<StateStartGame>();
-#endif
+            if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
+            {
+                ChangeState<StateLoadAssembly>();
+            }
+            else
+            {
+                ChangeState<StateStartGame>();
+            }
         }
 
         public override void Exit()

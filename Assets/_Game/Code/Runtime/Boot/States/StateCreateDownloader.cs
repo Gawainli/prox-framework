@@ -1,7 +1,7 @@
 ﻿using ProxFramework.Asset;
 using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StateCreateDownloader : State
     {
@@ -18,6 +18,7 @@ namespace GameName.Runtime
             }
             else
             {
+                //TODO:can check space here
                 fsm.Blackboard.SetObjectValue("patchOp", patchOp);
                 ChangeState<StateDownloadFile>();
             }

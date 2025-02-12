@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class Boot : MonoBehaviour
     {

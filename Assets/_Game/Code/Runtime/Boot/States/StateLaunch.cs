@@ -1,6 +1,6 @@
 ﻿using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StateLaunch : State
     {

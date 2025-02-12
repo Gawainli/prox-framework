@@ -3,7 +3,7 @@ using ProxFramework;
 using ProxFramework.Runtime.Settings;
 using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StateLoadAssembly : State
     {
@@ -16,22 +16,18 @@ namespace GameName.Runtime
             try
             {
                 PLogger.Info("StateLoadAssembly");
+                if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
+                {
 #if !UNITY_EDITOR
-                if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
-                {
-                    GameAssembly.LoadMetadataForAOTAssembly().Forget();
-                }
-
+                    await GameAssembly.LoadMetadataForAOTAssembly();
 #endif
-                if (SettingsUtil.GlobalSettings.hclrSettings.Enable)
-                {
                     await GameAssembly.LoadHotUpdateAssemblies();
                     ChangeState<StateStartGame>();
                 }
             }
             catch (Exception e)
             {
-                PLogger.Exception(e.ToString());
+                PLogger.Error(e.ToString());
             }
         }
 

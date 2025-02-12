@@ -3,7 +3,7 @@ using ProxFramework.Asset;
 using ProxFramework.StateMachine;
 using YooAsset;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StateInitPackage : State
     {

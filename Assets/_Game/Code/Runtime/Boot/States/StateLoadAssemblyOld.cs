@@ -3,7 +3,7 @@ using ProxFramework;
 using ProxFramework.Asset;
 using ProxFramework.StateMachine;
 
-namespace GameName.Runtime
+namespace Prox.GameName.Runtime
 {
     public class StateLoadAssemblyOld : State
     {
