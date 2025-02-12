@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetFrameRate: 60
   runtimePlayMode: 1
-  editorPlayMode: 1
+  editorPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
     preloadTags: 

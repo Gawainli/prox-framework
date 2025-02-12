@@ -2,6 +2,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using YooAsset.Editor;
 
 namespace ProxFramework.Editor
 {
@@ -12,11 +13,10 @@ namespace ProxFramework.Editor
         private UnityEditor.Editor _editor;
 
         [MenuItem("Prox/Settings")]
-        private static void ShowWindow()
+        private static void OpenWindow()
         {
-            var window = GetWindow<ProxSettingsEditor>(true);
-            window.titleContent = new GUIContent("Prox Settings");
-            window.Show();
+            var window = GetWindow<ProxSettingsEditor>("Prox Settings", true);
+            window.minSize = new Vector2(800, 600);
         }
 
         private void OnEnable()
@@ -39,7 +39,7 @@ namespace ProxFramework.Editor
             {
                 return;
             }
-
+            
             EditorGUILayout.LabelField($"Settings Path: {SettingsAssetPath}");
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             _editor.OnInspectorGUI();
