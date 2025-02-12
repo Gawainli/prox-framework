@@ -3,7 +3,7 @@ using Prox.GameName.UI;
 using ProxFramework.UI;
 using UnityEngine;
 
-namespace Prox.GameName.HotFix
+namespace Prox.GameName.Test
 {
     public class TestYoo : MonoBehaviour
     {
