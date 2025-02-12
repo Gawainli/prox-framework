@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetFrameRate: 60
   runtimePlayMode: 1
-  editorPlayMode: 0
+  editorPlayMode: 1
   assetSettings:
     scriptVersion: 1.0.0
     preloadTags: 
-    assetCdn: http://127.0.0.1
+    assetCdn: http://127.0.0.1/cdn
     maxDownloadingNum: 0
     failedTryAgain: 0
     packages:
@@ -32,11 +32,15 @@ MonoBehaviour:
       devHostUrl: 
   hclrSettings:
     hotUpdateAssemblies:
-    - HotUpdate
-    aotMetaAssemblies: []
+    - HotUpdate.dll
+    aotMetaAssemblies:
+    - HotUpdate.dll
+    - ProxFramework.dll
+    - UniTask.dll
+    - UnityEngine.CoreModule.dll
     logicMainDllName: HotUpdate
     assemblyBytesAssetDir: Assets/_Game/Raw
-    assemblyBytesAssetExtension: .dll.bytes
+    assemblyBytesAssetExtension: .bytes
   uiSettings:
     pixelPerfect: 0
     matchWidthOrHeight: 1
