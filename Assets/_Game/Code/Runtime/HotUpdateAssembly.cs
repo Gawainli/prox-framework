@@ -113,6 +113,7 @@ namespace Prox.GameName.Runtime
                 }
 
                 CacheTypesFromAssembly(assembly);
+                PLogger.Info($"Assembly {assembly.FullName} loaded");
             }
             catch (Exception e)
             {
