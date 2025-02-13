@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Cysharp.Threading.Tasks;
@@ -15,12 +14,40 @@ using HybridCLR;
 
 namespace Prox.GameName.Runtime
 {
-    public static class GameAssembly
+    public static class HotUpdateAssembly
     {
         private static readonly ConcurrentDictionary<string, Assembly> _hotUpdateAssemblies = new();
         private static readonly ConcurrentDictionary<string, Type> _cachedTypes = new();
 
 #if ENABLE_HCLR
+        public static async UniTask CheckAllAssemblies()
+        {
+            if (SettingsUtil.GlobalSettings.PlayMode != EPlayMode.EditorSimulateMode)
+            {
+                return;
+            }
+
+            PLogger.Info("Check all downloaded hot update assemblies");
+
+            foreach (var hotUpdateDllName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
+            {
+                var assetLocation =
+                    $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
+                var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
+                PLogger.Assert(bytes != null && bytes.Length != 0,
+                    $"LoadAssembly failed, bytes is null or empty: {assetLocation}");
+            }
+
+            foreach (var aotMetaDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
+            {
+                var assetLocation =
+                    $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{aotMetaDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
+                var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
+                PLogger.Assert(bytes != null && bytes.Length != 0,
+                    $"LoadAssembly failed, bytes is null or empty: {assetLocation}");
+            }
+        }
+
         public static async UniTask LoadHotUpdateAssemblies()
         {
             if (!SettingsUtil.GlobalSettings.hclrSettings.Enable ||
@@ -50,7 +77,8 @@ namespace Prox.GameName.Runtime
 
             foreach (string aotDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
             {
-                var assetLocation = $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{aotDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
+                var assetLocation =
+                    $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{aotDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
                 PLogger.Info($"LoadMetadataAsset: [ {assetLocation} ]");
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
 
@@ -66,14 +94,8 @@ namespace Prox.GameName.Runtime
                 }
             }
         }
-        
-        private static void RemoveAssembly(string assemblyName)
-        {
-#if UNITY_EDITOR
-#endif
-        }
 
-        public static void LoadBytes(byte[] bytes)
+        private static void LoadBytes(byte[] bytes)
         {
             if (bytes == null || bytes.Length == 0)
             {
@@ -90,13 +112,7 @@ namespace Prox.GameName.Runtime
                     return;
                 }
 
-                foreach (var type in assembly.GetExportedTypes())
-                {
-                    if (!_cachedTypes.TryAdd(type.FullName, type))
-                    {
-                        PLogger.Warning($"Type {type.FullName} is already cached");
-                    }
-                }
+                CacheTypesFromAssembly(assembly);
             }
             catch (Exception e)
             {
@@ -105,54 +121,22 @@ namespace Prox.GameName.Runtime
             }
         }
 
+        private static void CacheTypesFromAssembly(Assembly assembly)
+        {
+            foreach (var type in assembly.GetExportedTypes())
+            {
+                if (type.FullName != null)
+                {
+                    if (!_cachedTypes.TryAdd(type.FullName, type))
+                    {
+                        _cachedTypes.TryUpdate(type.FullName, type, type);
+                        PLogger.Warning($"Type {type.FullName} is already cached");
+                    }
+                }
+            }
+        }
+
 #endif
-        public static Type GetHotUpdateType(string typeFullName)
-        {
-            if (_cachedTypes.TryGetValue(typeFullName, out var type))
-            {
-                return type;
-            }
-
-            foreach (var assembly in _hotUpdateAssemblies.Values)
-            {
-                type = assembly.GetType(typeFullName);
-                if (type != null)
-                {
-                    _cachedTypes.TryAdd(typeFullName, type);
-                    return type;
-                }
-            }
-
-            PLogger.Error($"Type {typeFullName} not found in cached types or hot update assemblies");
-            return null;
-        }
-        
-        public static object CreateInstance<T>(object[] args = null)
-        {
-            args ??= Array.Empty<object>();
-
-            try
-            {
-                var type = GetTypeFromCacheOrDefault(typeof(T).FullName);
-                if (type == null)
-                {
-                    PLogger.Error($"Type {typeof(T).FullName} not found in cached types or default assemblies");
-                    return default;
-                }
-
-                return Activator.CreateInstance(type, args);
-            }
-            catch (MissingMethodException ex)
-            {
-                PLogger.Error($"Constructor not found for type {typeof(T).FullName}: {ex.Message}");
-                throw;
-            }
-            catch (Exception e)
-            {
-                PLogger.Error($"CreateInstance failed: {e}");
-                throw;
-            }
-        }
 
         public static object CallStatic(string typeFullName, string funcName, object[] args = null)
         {
@@ -208,25 +192,19 @@ namespace Prox.GameName.Runtime
             }
 
             PLogger.Info($"Type: {typeFullName} not found in cache, try to get from default assemblies");
-            type = Type.GetType(typeFullName) ??
-                   Assembly.GetExecutingAssembly().GetType(typeFullName) ??
-                   Assembly.GetCallingAssembly().GetType(typeFullName);
-
-            if (type == null)
+            
+            foreach (var hotUpdateName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
             {
-                foreach (var hotUpdateName in SettingsUtil.GlobalSettings.hclrSettings.hotUpdateAssemblies)
+                var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == hotUpdateName);
+                if (assembly == null) continue;
+                type = assembly.GetType(typeFullName);
+                if (type != null)
                 {
-                    var assembly = AppDomain.CurrentDomain.GetAssemblies()
-                        .FirstOrDefault(a => a.GetName().Name == hotUpdateName);
-                    if (assembly == null) continue;
-                    type = assembly.GetType(typeFullName);
-                    if (type != null)
-                    {
-                        break;
-                    }
+                    break;
                 }
             }
-
+            
             if (type != null)
             {
                 _cachedTypes.TryAdd(typeFullName, type);

@@ -16,10 +16,13 @@ namespace Prox.GameName.Runtime
             {
                 PLogger.Info("StateLoadAssembly");
 #if ENABLE_HCLR
-#if !UNITY_EDITOR
-                await GameAssembly.LoadMetadataForAOTAssembly();
+#if UNITY_EDITOR
+                PLogger.Warning("Skip loading, and only verify the downloaded assemblies in Editor.");
+                await HotUpdateAssembly.CheckAllAssemblies();
+#else
+                await HotUpdateAssembly.LoadHotUpdateAssemblies();
+                await HotUpdateAssembly.LoadMetadataForAOTAssembly();
 #endif
-                await GameAssembly.LoadHotUpdateAssemblies();
 #endif
                 ChangeState<StateStartGame>();
             }
