@@ -1,5 +1,8 @@
 ﻿#if UNITY_EDITOR
 
+using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using YooAsset.Editor;
@@ -39,16 +42,60 @@ namespace ProxFramework.Editor
             {
                 return;
             }
-            
+
             EditorGUILayout.LabelField($"Settings Path: {SettingsAssetPath}");
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             _editor.OnInspectorGUI();
+#if ENABLE_HCLR
+            if (GUILayout.Button("Refresh HCLR Settings"))
+            {
+                RefreshHclrSettings();
+                EditorUtility.SetDirty(_settings);
+                AssetDatabase.SaveAssets();
+            }
 
+#endif
             if (GUILayout.Button("Save"))
             {
                 EditorUtility.SetDirty(_settings);
                 AssetDatabase.SaveAssets();
             }
+        }
+
+        private void RefreshHclrSettings()
+        {
+            if (_settings == null || !_settings.hclrSettings.Enable)
+            {
+                return;
+            }
+
+            // Load HCLR settings
+            var hotUpdateAssemblyNames = HybridCLR.Editor.SettingsUtil.HotUpdateAssemblyNamesExcludePreserved;
+            foreach (var dllName in hotUpdateAssemblyNames)
+            {
+                PLogger.Info($"HotUpdateAssemblyNamesExcludePreserved: {dllName}");
+            }
+
+            var aotMetaAssemblyNames = HybridCLR.Editor.SettingsUtil.AOTAssemblyNames;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var t = assembly.GetType("AOTGenericReferences");
+                if (t == null) continue;
+
+                var patchedAOTList = (List<string>)t.GetField("PatchedAOTAssemblyList").GetValue(null);
+                foreach (var metaDllName in patchedAOTList)
+                {
+                    aotMetaAssemblyNames.Add(Path.GetFileNameWithoutExtension(metaDllName));
+                }
+            }
+
+            foreach (var metaDllName in aotMetaAssemblyNames)
+            {
+                PLogger.Info($"AOTAssemblyNames: {metaDllName}");
+            }
+
+            _settings.hclrSettings.hotUpdateAssemblies = hotUpdateAssemblyNames.ToArray();
+            _settings.hclrSettings.aotMetaAssemblies = aotMetaAssemblyNames.ToArray();
         }
     }
 }
