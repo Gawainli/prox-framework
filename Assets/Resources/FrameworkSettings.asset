@@ -32,15 +32,15 @@ MonoBehaviour:
       devHostUrl: 
   hclrSettings:
     hotUpdateAssemblies:
-    - HotUpdate.dll
+    - HotUpdate
     aotMetaAssemblies:
-    - HotUpdate.dll
-    - ProxFramework.dll
-    - UniTask.dll
-    - UnityEngine.CoreModule.dll
+    - ProxFramework
+    - UniTask
+    - UnityEngine.CoreModule
+    - mscorlib
     logicMainDllName: HotUpdate
     assemblyBytesAssetDir: Assets/_Game/Raw
-    assemblyBytesAssetExtension: .bytes
+    assemblyBytesAssetExtension: .dll.bytes
   uiSettings:
     pixelPerfect: 0
     matchWidthOrHeight: 1
