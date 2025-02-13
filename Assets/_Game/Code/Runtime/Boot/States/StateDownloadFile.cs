@@ -23,7 +23,6 @@ namespace Prox.GameName.Runtime
                 await _patchAsyncOperation;
                 if (_patchAsyncOperation.succeed)
                 {
-                    await UniTask.WaitForSeconds(1f);
                     ChangeState<StatePatchDone>();
                 }
                 else
@@ -44,6 +43,9 @@ namespace Prox.GameName.Runtime
             UnityEditor.EditorUtility.DisplayProgressBar($"下载资源, 共{_patchAsyncOperation.totalDownloadCount}个",
                 $"下载资源中... {_patchAsyncOperation.CurrentDownloadCount}/{_patchAsyncOperation.totalDownloadCount}",
                 _patchAsyncOperation.Progress);
+#else
+            PLogger.Info(
+                $"下载资源中... {_patchAsyncOperation.CurrentDownloadCount}/{_patchAsyncOperation.totalDownloadCount} progress: {_patchAsyncOperation.Progress}");
 #endif
         }
 

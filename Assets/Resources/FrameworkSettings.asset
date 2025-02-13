@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60
-  runtimePlayMode: 1
+  runtimePlayMode: 2
   editorPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
     preloadTags: 
-    assetCdn: http://127.0.0.1/cdn
+    assetCdn: http://127.0.0.1:11811/cdn
     maxDownloadingNum: 0
     failedTryAgain: 0
     packages:
