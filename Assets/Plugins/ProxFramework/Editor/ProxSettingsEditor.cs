@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using YooAsset.Editor;
 
 namespace ProxFramework.Editor
 {
@@ -94,6 +93,22 @@ namespace ProxFramework.Editor
                 PLogger.Info($"AOTAssemblyNames: {metaDllName}");
             }
 
+            foreach (var hotUpdateName in _settings.hclrSettings.hotUpdateAssemblies)
+            {
+                if (!hotUpdateAssemblyNames.Contains(hotUpdateName))
+                {
+                    hotUpdateAssemblyNames.Add(hotUpdateName);
+                }
+            }
+
+            foreach (var aotDllName in _settings.hclrSettings.aotMetaAssemblies)
+            {
+                if (!aotMetaAssemblyNames.Contains(aotDllName))
+                {
+                    aotMetaAssemblyNames.Add(aotDllName);
+                }
+            }
+            
             _settings.hclrSettings.hotUpdateAssemblies = hotUpdateAssemblyNames.ToArray();
             _settings.hclrSettings.aotMetaAssemblies = aotMetaAssemblyNames.ToArray();
         }
