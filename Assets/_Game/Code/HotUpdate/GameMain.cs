@@ -2,7 +2,7 @@
 using ProxFramework;
 using ProxFramework.Scene;
 
-namespace GameName.GameMain
+namespace GameName.Core
 {
     public static class GameMain
     {

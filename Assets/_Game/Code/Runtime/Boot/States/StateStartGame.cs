@@ -10,7 +10,7 @@ namespace Prox.GameName.Runtime
 
         public override void Enter()
         {
-            HotUpdateAssembly.CallStatic("GameName.GameMain.GameMain", "StartGame");
+            HotUpdateAssembly.CallStatic("GameName.Core.GameMain", "StartGame");
         }
 
         public override void Exit()
