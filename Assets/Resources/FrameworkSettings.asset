@@ -47,3 +47,6 @@ MonoBehaviour:
     referenceResolutionX: 1920
     referenceResolutionY: 1080
     ignoreReversedGraphics: 1
+  dataTableSettings:
+    tableAssetsDir: Assets/_Game/Raw/DataTables
+    tableAssetExtension: .bytes
