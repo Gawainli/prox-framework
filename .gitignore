@@ -96,3 +96,5 @@ Assets/HybridCLRGenerate.meta
 update_bundles
 Assets/Resources/update_bundles.meta
 Assets/StreamingAssets/update_bundles.meta
+Assets/_Game/Code/HotUpdate/Table/Gen
+Assets/_Game/Code/HotUpdate/Table/Gen.meta
