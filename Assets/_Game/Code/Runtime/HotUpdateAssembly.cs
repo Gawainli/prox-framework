@@ -36,6 +36,7 @@ namespace Prox.GameName.Runtime
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
                 PLogger.Assert(bytes != null && bytes.Length != 0,
                     $"LoadAssembly failed, bytes is null or empty: {assetLocation}");
+                AssetModule.ReleaseAsset(bytes);
             }
 
             foreach (var aotMetaDllName in SettingsUtil.GlobalSettings.hclrSettings.aotMetaAssemblies)
@@ -45,6 +46,7 @@ namespace Prox.GameName.Runtime
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
                 PLogger.Assert(bytes != null && bytes.Length != 0,
                     $"LoadAssembly failed, bytes is null or empty: {assetLocation}");
+                AssetModule.ReleaseAsset(bytes);
             }
         }
 
@@ -59,6 +61,7 @@ namespace Prox.GameName.Runtime
                     $"{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetDir}/{hotUpdateDllName}{SettingsUtil.GlobalSettings.hclrSettings.assemblyBytesAssetExtension}";
                 var bytes = await AssetModule.LoadRawDataAsync(assetLocation);
                 LoadBytes(bytes);
+                AssetModule.ReleaseAsset(bytes);
             }
         }
 
@@ -86,6 +89,7 @@ namespace Prox.GameName.Runtime
                 {
                     var errorCode = RuntimeApi.LoadMetadataForAOTAssembly(bytes, HomologousImageMode.SuperSet);
                     PLogger.Info($"LoadMetadataForAOTAssembly: {aotDllName} errorCode: {errorCode}");
+                    AssetModule.ReleaseAsset(bytes);
                 }
                 catch (Exception e)
                 {
