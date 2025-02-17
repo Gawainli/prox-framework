@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YooAsset;
@@ -32,7 +33,7 @@ namespace ProxFramework.Asset
             {
                 return null;
             }
-            
+
             if (typeof(T) == typeof(AssetHandle))
             {
                 var assetHandle = isAsync ? package.LoadAssetAsync(location) : package.LoadAssetSync(location);
@@ -52,6 +53,13 @@ namespace ProxFramework.Asset
 
         public static T LoadAssetSync<T>(string location) where T : UnityEngine.Object
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<T>(location);
+                return asset;
+            }
+#endif
             var assetHandle = GetAssetHandle<AssetHandle>(location, false);
             if (!assetHandle.IsDone)
             {
@@ -64,6 +72,13 @@ namespace ProxFramework.Asset
 
         public static async UniTask<T> LoadAssetAsync<T>(string location) where T : UnityEngine.Object
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<T>(location);
+                return asset;
+            }
+#endif
             var assetHandle = GetAssetHandle<AssetHandle>(location, true);
             await assetHandle.ToUniTask();
             _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
@@ -72,6 +87,13 @@ namespace ProxFramework.Asset
 
         public static byte[] LoadRawFileSync(string location)
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(location);
+                return asset.bytes;
+            }
+#endif
             var rawFileHandle = GetAssetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
@@ -83,6 +105,13 @@ namespace ProxFramework.Asset
 
         public static async UniTask<byte[]> LoadRawDataAsync(string location)
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(location);
+                return asset.bytes;
+            }
+#endif
             var rawFileHandle = GetAssetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileData();
@@ -90,6 +119,13 @@ namespace ProxFramework.Asset
 
         public static string LoadTextFileSync(string location)
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(location);
+                return asset.text;
+            }
+#endif
             var rawFileHandle = GetAssetHandle<RawFileHandle>(location, false);
             if (!rawFileHandle.IsDone)
             {
@@ -101,6 +137,13 @@ namespace ProxFramework.Asset
 
         public static async UniTask<string> LoadTextFileAsync(string location)
         {
+#if UNITY_EDITOR
+            if (!initialized)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(location);
+                return asset.text;
+            }
+#endif
             var rawFileHandle = GetAssetHandle<RawFileHandle>(location, true);
             await rawFileHandle.ToUniTask();
             return rawFileHandle.GetRawFileText();

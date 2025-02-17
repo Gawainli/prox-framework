@@ -36,13 +36,13 @@ namespace ProxFramework.Asset
 
     public static partial class AssetModule
     {
-        private static bool _initialized = false;
         private static int _downloadingMaxNum;
         private static int _failedTryAgain;
         private static Dictionary<string, ResourcePackage> _mapNameToResourcePackage = new();
         public static TaskCtsModule.CtsInfo ctsInfo;
         public static CancellationToken CtsToken => ctsInfo.cts.Token;
         public static string defaultPkgName;
+        public static bool initialized = false;
 
         public static void Initialize()
         {
@@ -55,7 +55,7 @@ namespace ProxFramework.Asset
             _downloadingMaxNum = SettingsUtil.GlobalSettings.assetSettings.maxDownloadingNum;
             _failedTryAgain = SettingsUtil.GlobalSettings.assetSettings.failedTryAgain;
             defaultPkgName = SettingsUtil.GlobalSettings.assetSettings.packages[0].name;
-            _initialized = true;
+            initialized = true;
         }
 
         public static async UniTask<EOperationStatus> InitPackages()
