@@ -50,3 +50,9 @@ MonoBehaviour:
   dataTableSettings:
     tableAssetsDir: Assets/_Game/Raw/DataTables
     tableAssetExtension: .bytes
+  l10NSettings:
+    defaultLanguage: 6
+    supportedLanguages: 0a00000016000000
+    l10NFontSettings: []
+    l10NAssetsPathPrefixes:
+    - Assets/_Game/Art
