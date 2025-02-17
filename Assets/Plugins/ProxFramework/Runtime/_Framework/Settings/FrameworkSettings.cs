@@ -29,5 +29,6 @@ namespace ProxFramework.Runtime.Settings
         public HCLRSettings hclrSettings;
         public UISettings uiSettings;
         public DataTableSettings dataTableSettings;
+        public L10NSettings l10NSettings;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ProxFramework.Asset;
 using ProxFramework.Event;
+using ProxFramework.Localization;
 using ProxFramework.Network;
 using ProxFramework.StateMachine;
 using ProxFramework.UI;
@@ -15,6 +16,7 @@ namespace ProxFramework.Base
             StateMachineModule.Initialize();
             AssetModule.Initialize();
             NetworkModule.Initialize();
+            LocalizationModule.Initialize();
             UIModule.Initialize(transform.Find("UIRootCanvas").gameObject);
         }
 
@@ -31,6 +33,7 @@ namespace ProxFramework.Base
         private void OnDestroy()
         {
             UIModule.Shutdown();
+            LocalizationModule.Shutdown();
             NetworkModule.Shutdown();
             AssetModule.Shutdown();
             StateMachineModule.Shutdown();
