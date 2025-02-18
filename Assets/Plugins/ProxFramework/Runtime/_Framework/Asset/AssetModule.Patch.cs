@@ -37,37 +37,50 @@ namespace ProxFramework.Asset
             await op.ToUniTask(cancellationToken: CtsToken);
             return op;
         }
-
+        
         public static ResourceDownloaderOperation CreateResourceDownloader(string packageName = "")
         {
             var package = string.IsNullOrEmpty(packageName)
                 ? YooAssets.GetPackage(defaultPkgName)
                 : YooAssets.GetPackage(packageName);
-            var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+            var downloadOp = package.CreateResourceDownloader( _downloadingMaxNum, _failedTryAgain);
             return downloadOp;
         }
 
-        public static ResourceDownloaderOperation CreateResourceDownloaderForAll()
+        public static ResourceDownloaderOperation CreateResourceDownloader(string packageName = "", params string[] tags)
         {
-            var package = YooAssets.GetPackage(defaultPkgName);
-            var downloadOp = package.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
-            foreach (var pkg in GetAllPackages())
-            {
-                if (package == pkg) continue;
-                var op = pkg.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
-                downloadOp.Combine(op);
-            }
-
+            var package = string.IsNullOrEmpty(packageName)
+                ? YooAssets.GetPackage(defaultPkgName)
+                : YooAssets.GetPackage(packageName);
+            var downloadOp = package.CreateResourceDownloader(tags, _downloadingMaxNum, _failedTryAgain);
             return downloadOp;
         }
-
+        
         public static PatchAsyncOperation CreatePatchAsyncOperation()
         {
             var downloaderOpList = new List<ResourceDownloaderOperation>();
 
             foreach (var pkg in GetAllPackages())
             {
-                var op = pkg.CreateResourceDownloader(_downloadingMaxNum, _failedTryAgain);
+                var op = pkg.CreateResourceDownloader( _downloadingMaxNum, _failedTryAgain);
+                if (op.TotalDownloadCount == 0)
+                {
+                    continue;
+                }
+
+                downloaderOpList.Add(op);
+            }
+
+            return new PatchAsyncOperation(downloaderOpList);
+        }
+
+        public static PatchAsyncOperation CreatePatchAsyncOperation(params string[] tags)
+        {
+            var downloaderOpList = new List<ResourceDownloaderOperation>();
+
+            foreach (var pkg in GetAllPackages())
+            {
+                var op = pkg.CreateResourceDownloader(tags, _downloadingMaxNum, _failedTryAgain);
                 if (op.TotalDownloadCount == 0)
                 {
                     continue;
