@@ -21,13 +21,18 @@ namespace ProxFramework.Localization
                 return;
             }
 
+            ApplyFont();
             _text.text = LocalizationModule.GetLocalizeValue(_text.text);
         }
 
-        protected void ApplyFont()
+        private void ApplyFont()
         {
             _text.font = LocalizationModule.CurrentFont;
-            _text.fontMaterial = LocalizationModule.CurrentFontMaterial;
+            if (LocalizationModule.CurrentFontMaterial != null)
+            {
+                _text.fontMaterial = LocalizationModule.CurrentFontMaterial;
+            }
+
             _text.fontSize *= LocalizationModule.CurrentFontSize;
         }
     }

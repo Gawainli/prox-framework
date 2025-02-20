@@ -56,14 +56,24 @@ namespace ProxFramework.Localization
             foreach (var langFontSettings in SettingsUtil.GlobalSettings.l10NSettings.l10NFontSettings)
             {
                 var fontAsset = await AssetModule.LoadAssetAsync<TMP_FontAsset>(langFontSettings.fontAssetPath);
-                var material = await AssetModule.LoadAssetAsync<Material>(langFontSettings.fontMaterialPath);
-                if (fontAsset != null && material != null)
+                Material material = null;
+                if (!string.IsNullOrEmpty(langFontSettings.fontMaterialPath))
+                {
+                    material = await AssetModule.LoadAssetAsync<Material>(langFontSettings.fontMaterialPath);
+                }
+
+                if (fontAsset != null)
                 {
                     _mapCultureCode2FontMappings.TryAdd(langFontSettings.language,
                         new LangFontMapping()
                         {
                             fontAsset = fontAsset, material = material, sizeScaler = langFontSettings.fontSizeScaler
                         });
+                }
+                else
+                {
+                    PLogger.Warning(
+                        $"LocalizationModule.PreloadFonts: FontAsset {langFontSettings.fontAssetPath} is null");
                 }
             }
         }

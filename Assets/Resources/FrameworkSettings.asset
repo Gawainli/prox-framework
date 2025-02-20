@@ -51,8 +51,13 @@ MonoBehaviour:
     tableAssetsDir: Assets/_Game/Raw/DataTables
     tableAssetExtension: .bytes
   l10NSettings:
+    editorCheckLanguage: 6
     defaultLanguage: 6
-    supportedLanguages: 0a00000016000000
-    l10NFontSettings: []
+    supportedLanguages: 06000000280000000a00000016000000
+    l10NFontSettings:
+    - language: zh-hans
+      fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
+      fontMaterialPath: 
+      fontSizeScaler: 1
     l10NAssetsPathPrefixes:
     - Assets/_Game/Art
