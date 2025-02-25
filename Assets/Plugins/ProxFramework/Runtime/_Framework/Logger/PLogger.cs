@@ -34,10 +34,7 @@ namespace ProxFramework
 
         private static StringBuilder stringBuilder = new StringBuilder(1024);
 
-        public static void Info(string msg)
-        {
-            Log(LogLevel.Info, msg);
-        }
+        public static void Info(string msg) => Log(LogLevel.Info, msg);
 
         public static void Assert(bool condition, string msg = "")
         {
@@ -47,20 +44,13 @@ namespace ProxFramework
             }
         }
 
-        public static void Warning(string msg)
-        {
-            Log(LogLevel.Warning, msg);
-        }
+        public static void Warning(string msg) => Log(LogLevel.Warning, msg);
 
-        public static void Error(string msg)
-        {
-            Log(LogLevel.Error, msg);
-        }
+        public static void Error(string msg) => Log(LogLevel.Error, msg);
 
         public static void Exception(string msg, Exception e)
         {
-            Log(LogLevel.Exception, $"{msg}{e.Message}");
-            UnityEngine.Debug.Log(e.StackTrace);
+            Log(LogLevel.Exception, $"{msg}-Exception:{e.Message}\n Stack:{e.StackTrace}");
         }
 
         private static void Log(LogLevel type, string logString)
