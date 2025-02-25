@@ -15,7 +15,28 @@ namespace ProxFramework.Asset
         private static Dictionary<GameObject, object> _mapInstanceObjectToAssetObject = new();
         private static Dictionary<string, SceneHandle> _mapSceneToHandle = new();
 
-        public static T GetAssetHandle<T>(string location, bool isAsync) where T : HandleBase
+        public static bool CheckLocationValid(string location)
+        {
+            if (!initialized)
+            {
+#if UNITY_EDITOR
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(location);
+                return asset != null;
+#endif
+            }
+
+            foreach (var pkg in _mapNameToResourcePackage.Values)
+            {
+                if (pkg.CheckLocationValid(location))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static T GetAssetHandle<T>(string location, bool isAsync, System.Type type = null) where T : HandleBase
         {
             if (_mapLocationToHandle.TryGetValue(location, out var handle))
             {
@@ -31,12 +52,13 @@ namespace ProxFramework.Asset
 
             if (!TryGetContainsPackage(location, out var package))
             {
+                PLogger.Error($"Cannot find package by location:{location}");
                 return null;
             }
 
             if (typeof(T) == typeof(AssetHandle))
             {
-                var assetHandle = isAsync ? package.LoadAssetAsync(location) : package.LoadAssetSync(location);
+                var assetHandle = isAsync ? package.LoadAssetAsync(location, type) : package.LoadAssetSync(location, type);
                 _mapLocationToHandle.Add(location, assetHandle);
                 return assetHandle as T;
             }
@@ -48,6 +70,7 @@ namespace ProxFramework.Asset
                 return rawFileHandle as T;
             }
 
+            PLogger.Error($"Unsupported Handle Type: {typeof(T).Name}");
             return null;
         }
 
@@ -60,7 +83,7 @@ namespace ProxFramework.Asset
                 return asset;
             }
 #endif
-            var assetHandle = GetAssetHandle<AssetHandle>(location, false);
+            var assetHandle = GetAssetHandle<AssetHandle>(location, false, typeof(T));
             if (!assetHandle.IsDone)
             {
                 assetHandle.WaitForAsyncComplete();
@@ -79,7 +102,7 @@ namespace ProxFramework.Asset
                 return asset;
             }
 #endif
-            var assetHandle = GetAssetHandle<AssetHandle>(location, true);
+            var assetHandle = GetAssetHandle<AssetHandle>(location, true, typeof(T));
             await assetHandle.ToUniTask();
             _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
             return assetHandle.AssetObject as T;

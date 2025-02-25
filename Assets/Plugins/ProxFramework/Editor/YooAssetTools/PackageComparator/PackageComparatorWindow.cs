@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,15 +11,18 @@ namespace YooAsset.Editor
     public class PackageComparatorWindow : EditorWindow
     {
         static PackageComparatorWindow _thisInstance;
-        
+
         [MenuItem("YooAsset/Tools/补丁包比对工具", false, 999)]
         static void ShowWindow()
         {
             if (_thisInstance == null)
             {
-                _thisInstance = EditorWindow.GetWindow(typeof(PackageComparatorWindow), false, "补丁包比对工具", true) as PackageComparatorWindow;
+                _thisInstance =
+                    EditorWindow.GetWindow(typeof(PackageComparatorWindow), false, "补丁包比对工具", true) as
+                        PackageComparatorWindow;
                 _thisInstance.minSize = new Vector2(800, 600);
             }
+
             _thisInstance.Show();
         }
 
@@ -39,6 +44,7 @@ namespace YooAsset.Editor
                     return;
                 _manifestPath1 = resultPath;
             }
+
             EditorGUILayout.LabelField(_manifestPath1);
             EditorGUILayout.EndHorizontal();
 
@@ -51,6 +57,7 @@ namespace YooAsset.Editor
                     return;
                 _manifestPath2 = resultPath;
             }
+
             EditorGUILayout.LabelField(_manifestPath2);
             EditorGUILayout.EndHorizontal();
 
@@ -136,3 +143,4 @@ namespace YooAsset.Editor
         }
     }
 }
+#endif

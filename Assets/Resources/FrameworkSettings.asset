@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FrameworkSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60
-  runtimePlayMode: 2
+  runtimePlayMode: 1
   editorPlayMode: 0
   assetSettings:
     scriptVersion: 1.0.0
@@ -38,6 +38,7 @@ MonoBehaviour:
     - UniTask
     - UnityEngine.CoreModule
     - mscorlib
+    - Luban.Runtime
     logicMainDllName: HotUpdate
     assemblyBytesAssetDir: Assets/_Game/Raw
     assemblyBytesAssetExtension: .dll.bytes
@@ -51,13 +52,27 @@ MonoBehaviour:
     tableAssetsDir: Assets/_Game/Raw/DataTables
     tableAssetExtension: .bytes
   l10NSettings:
-    editorCheckLanguage: 6
     defaultLanguage: 6
-    supportedLanguages: 06000000280000000a00000016000000
     l10NFontSettings:
-    - language: zh-hans
+    - language: 6
       fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
       fontMaterialPath: 
       fontSizeScaler: 1
+    - language: 40
+      fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
+      fontMaterialPath: 
+      fontSizeScaler: 1
+    - language: 41
+      fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
+      fontMaterialPath: 
+      fontSizeScaler: 1
+    - language: 22
+      fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
+      fontMaterialPath: 
+      fontSizeScaler: 1
+    - language: 10
+      fontAssetPath: Assets/_Game/Art/FontAsset/SourceHanSansSC-VF-SDF.asset
+      fontMaterialPath: 
+      fontSizeScaler: 2
     l10NAssetsPathPrefixes:
     - Assets/_Game/Art

@@ -1,11 +1,21 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ProxFramework.Localization
 {
     public abstract class LocalizedBehaviour : MonoBehaviour
     {
-        [SerializeField] private bool _enableLocalization = true;
-        protected abstract void ApplyLocalization();
+        [SerializeField] private bool enableLocalization = true;
+        [SerializeField] protected string l10NKey;
+
+        public virtual void AutoSetL10NKey()
+        {
+            l10NKey = $"{transform.parent.name}_{transform.name}";
+        }
+        
+        public virtual void Init(){}
+
+        public abstract void ApplyLocalization();
 
         protected virtual void Awake()
         {
@@ -13,7 +23,7 @@ namespace ProxFramework.Localization
 
         protected void OnEnable()
         {
-            if (_enableLocalization && LocalizationModule.initialized)
+            if (enableLocalization && LocalizationModule.initialized)
             {
                 LocalizationModule.OnLanguageChanged += ApplyLocalization;
                 ApplyLocalization();
@@ -22,7 +32,7 @@ namespace ProxFramework.Localization
 
         protected void OnDisable()
         {
-            if (_enableLocalization && LocalizationModule.initialized)
+            if (enableLocalization && LocalizationModule.initialized)
             {
                 LocalizationModule.OnLanguageChanged -= ApplyLocalization;
             }

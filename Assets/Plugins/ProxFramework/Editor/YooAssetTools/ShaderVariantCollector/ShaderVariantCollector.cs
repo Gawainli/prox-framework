@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -132,14 +134,17 @@ public static class ShaderVariantCollector
             }
         }
     }
+
     private static void CreateTempScene()
     {
         EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
     }
+
     private static List<string> GetAllMaterials()
     {
         // 获取所有打包的资源
-        CollectResult collectResult = AssetBundleCollectorSettingData.Setting.GetPackageAssets(false, false,  _packageName);
+        CollectResult collectResult =
+            AssetBundleCollectorSettingData.Setting.GetPackageAssets(false, false, _packageName);
 
         // 搜集所有材质球
         int progressValue = 0;
@@ -152,7 +157,8 @@ public static class ShaderVariantCollector
                 if (result.Contains(assetPath) == false)
                     result.Add(assetPath);
             }
-            foreach(var dependAssetInfo in collectAssetInfo.DependAssets)
+
+            foreach (var dependAssetInfo in collectAssetInfo.DependAssets)
             {
                 if (dependAssetInfo.AssetType == typeof(UnityEngine.Material))
                 {
@@ -161,13 +167,16 @@ public static class ShaderVariantCollector
                         result.Add(assetPath);
                 }
             }
+
             EditorTools.DisplayProgressBar("搜集所有材质球", ++progressValue, collectResult.CollectAssets.Count);
         }
+
         EditorTools.ClearProgressBar();
 
         // 返回结果
         return result.ToList();
     }
+
     private static void CollectVariants(List<string> materials)
     {
         Camera camera = Camera.main;
@@ -205,10 +214,13 @@ public static class ShaderVariantCollector
             {
                 x++;
             }
+
             EditorTools.DisplayProgressBar("照射所有材质球", ++progressValue, materials.Count);
         }
+
         EditorTools.ClearProgressBar();
     }
+
     private static GameObject CreateSphere(string assetPath, Vector3 position, int index)
     {
         var material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
@@ -222,17 +234,20 @@ public static class ShaderVariantCollector
         go.name = $"Sphere_{index} | {material.name}";
         return go;
     }
+
     private static void DestroyAllSpheres()
     {
         foreach (var go in _allSpheres)
         {
             GameObject.DestroyImmediate(go);
         }
+
         _allSpheres.Clear();
 
         // 尝试释放编辑器加载的资源
         EditorUtility.UnloadUnusedAssetsImmediate(true);
     }
+
     private static void CreateManifest()
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
@@ -249,3 +264,4 @@ public static class ShaderVariantCollector
         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
     }
 }
+#endif

@@ -16,7 +16,7 @@ namespace Prox.GameName.Test
             t.TestMethod();
 
             PLogger.Info("start game. open main window");
-            // UIModule.OpenWindowAsync<UIWndMain>("Assets/_Game/Art/UI/Prefabs/UIWndMain.prefab").Forget();
+            UIModule.OpenWindowAsync<UIWndMain>("Assets/_Game/Art/UI/Prefabs/UIWndMain.prefab").Forget();
         }
     }
 }

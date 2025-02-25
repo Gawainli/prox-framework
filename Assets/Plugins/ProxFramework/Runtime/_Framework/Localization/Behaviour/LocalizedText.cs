@@ -6,6 +6,7 @@ namespace ProxFramework.Localization
     public class LocalizedText : LocalizedBehaviour
     {
         private TMPro.TMP_Text _text;
+        private float _defaultFontSize = -1.0f;
 
         protected override void Awake()
         {
@@ -13,16 +14,21 @@ namespace ProxFramework.Localization
             _text = GetComponent<TMPro.TMP_Text>();
         }
 
-        protected override void ApplyLocalization()
+        public override void ApplyLocalization()
         {
             if (_text == null)
             {
-                PLogger.Warning("LocalizedText: Text component is null");
+                _text = GetComponent<TMPro.TMP_Text>();
+            }
+
+            if (_text == null)
+            {
+                PLogger.Warning("LocalizedText: Text component not found");
                 return;
             }
 
             ApplyFont();
-            _text.text = LocalizationModule.GetLocalizeValue(_text.text);
+            _text.text = LocalizationModule.GetLocalizeValue(l10NKey);
         }
 
         private void ApplyFont()
@@ -33,7 +39,11 @@ namespace ProxFramework.Localization
                 _text.fontMaterial = LocalizationModule.CurrentFontMaterial;
             }
 
-            _text.fontSize *= LocalizationModule.CurrentFontSize;
+            if (_defaultFontSize <= 0)
+            {
+                _defaultFontSize = _text.fontSize;
+            }
+            _text.fontSize = _defaultFontSize * LocalizationModule.CurrentFontSize;
         }
     }
 }

@@ -8,25 +8,21 @@ namespace ProxFramework.Localization
     {
         private Image _image;
 
-        protected override void UpdateAssetPath()
+#if UNITY_EDITOR
+        public override void AutoSetL10NKey()
         {
-            var image = GetComponent<Image>();
-            if (image == null)
+            var asset = GetComponent<Image>();
+            if (asset == null)
             {
-                PLogger.Warning("LocalizedImage: Image component not found");
-                assetPath = "";
+                PLogger.Warning($"Localized {typeof(Image)} is null. {gameObject.name}");
+                l10NKey = string.Empty;
                 return;
             }
 
-            if (image.sprite == null)
-            {
-                PLogger.Warning("LocalizedImage: Image sprite is null");
-                assetPath = "";
-                return;
-            }
-
-            assetPath = AssetDatabase.GetAssetPath(image.sprite);
+            var path = AssetDatabase.GetAssetPath(asset.sprite);
+            l10NKey = path;
         }
+#endif
 
         protected override void ApplyAsset(Sprite asset)
         {

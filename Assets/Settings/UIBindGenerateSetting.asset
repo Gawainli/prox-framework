@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiWindowCodeTemplatePath: Assets/Plugins/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.cs.template
   uiWindowGenTemplatePath: Assets/Plugins/ProxFramework/Editor/UIAutoGen/UIWindowTemplate.Gen.cs.template
-  uiCodeGeneratePath: Assets/_Game/Code/HotFix/UI
+  uiCodeGeneratePath: Assets/_Game/Code/HotUpdate/UI
   uiCodeNamespace: Prox.GameName.UI

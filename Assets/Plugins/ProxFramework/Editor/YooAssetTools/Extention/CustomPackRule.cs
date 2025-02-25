@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.IO;
 using YooAsset.Editor;
 
@@ -48,3 +50,4 @@ namespace ProxFramework.Editor
         }
     }
 }
+#endif

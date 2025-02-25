@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 
@@ -13,9 +15,12 @@ namespace YooAsset.Editor
         {
             if (_thisInstance == null)
             {
-                _thisInstance = EditorWindow.GetWindow(typeof(PackageImporterWindow), false, "补丁包导入工具", true) as PackageImporterWindow;
+                _thisInstance =
+                    EditorWindow.GetWindow(typeof(PackageImporterWindow), false, "补丁包导入工具", true) as
+                        PackageImporterWindow;
                 _thisInstance.minSize = new Vector2(800, 600);
             }
+
             _thisInstance.Show();
         }
 
@@ -31,6 +36,7 @@ namespace YooAsset.Editor
                 if (!string.IsNullOrEmpty(resultPath))
                     _manifestPath = resultPath;
             }
+
             EditorGUILayout.LabelField(_manifestPath);
             EditorGUILayout.EndHorizontal();
 
@@ -58,12 +64,14 @@ namespace YooAsset.Editor
             // 拷贝核心文件
             {
                 string sourcePath = $"{outputDirectory}/{manifestFileName}.bytes";
-                string destPath = $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{manifestFileName}.bytes";
+                string destPath =
+                    $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{manifestFileName}.bytes";
                 EditorTools.CopyFile(sourcePath, destPath, true);
             }
             {
                 string sourcePath = $"{outputDirectory}/{manifestFileName}.hash";
-                string destPath = $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{manifestFileName}.hash";
+                string destPath =
+                    $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{manifestFileName}.hash";
                 EditorTools.CopyFile(sourcePath, destPath, true);
             }
             {
@@ -79,7 +87,8 @@ namespace YooAsset.Editor
             {
                 fileCount++;
                 string sourcePath = $"{outputDirectory}/{packageBundle.FileName}";
-                string destPath = $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{packageBundle.FileName}";
+                string destPath =
+                    $"{AssetBundleBuilderHelper.GetStreamingAssetsRoot()}/{packageName}/{packageBundle.FileName}";
                 EditorTools.CopyFile(sourcePath, destPath, true);
             }
 
@@ -88,3 +97,4 @@ namespace YooAsset.Editor
         }
     }
 }
+#endif

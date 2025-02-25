@@ -17,25 +17,40 @@ namespace ProxFramework.Localization
             public float sizeScaler;
         }
 
-        public static SystemLanguage DefaultLanguage { get; private set; } = SystemLanguage.Chinese;
         public static bool initialized { get; private set; }
-        public static string CultureCode { get; private set; }
+        public static SystemLanguage DefaultLanguage { get; private set; }
+        public static SystemLanguage CurrentLanguage { get; private set; }
         public static event Action OnLanguageChanged;
 
-        private static IL10NTable _table;
+        private static II18NTable _table;
         private static List<SystemLanguage> _supportLanguages = new();
+        public static List<SystemLanguage> SupportLanguages => _supportLanguages;
 
         public static TMP_FontAsset CurrentFont { get; private set; }
         public static Material CurrentFontMaterial { get; private set; }
         public static float CurrentFontSize { get; private set; }
-        private static Dictionary<string, LangFontMapping> _mapCultureCode2FontMappings;
+        private static Dictionary<SystemLanguage, LangFontMapping> _mapCultureCode2FontMappings = new();
 
-        public static void Initialize()
+        public static async UniTask Initialize(II18NTable table = null)
         {
+            if (initialized)
+            {
+                return;
+            }
+            
             DefaultLanguage = SettingsUtil.GlobalSettings.l10NSettings.defaultLanguage;
-            _supportLanguages.AddRange(SettingsUtil.GlobalSettings.l10NSettings.supportedLanguages);
+            CurrentLanguage = DefaultLanguage;
+            await PreloadFonts();
 
-            CultureCode = GetSystemLanguageCultureCode(DefaultLanguage);
+            CurrentFont = _mapCultureCode2FontMappings[DefaultLanguage].fontAsset;
+            CurrentFontMaterial = _mapCultureCode2FontMappings[DefaultLanguage].material;
+            CurrentFontSize = _mapCultureCode2FontMappings[DefaultLanguage].sizeScaler;
+
+            if (table != null)
+            {
+                SetTable(table);
+            }
+
             initialized = true;
         }
 
@@ -43,10 +58,11 @@ namespace ProxFramework.Localization
         {
             _table = null;
             _supportLanguages.Clear();
+            _mapCultureCode2FontMappings.Clear();
             initialized = false;
         }
 
-        public static void SetTable(IL10NTable table)
+        public static void SetTable(II18NTable table)
         {
             _table = table;
         }
@@ -55,6 +71,7 @@ namespace ProxFramework.Localization
         {
             foreach (var langFontSettings in SettingsUtil.GlobalSettings.l10NSettings.l10NFontSettings)
             {
+                _supportLanguages.Add(langFontSettings.language);
                 var fontAsset = await AssetModule.LoadAssetAsync<TMP_FontAsset>(langFontSettings.fontAssetPath);
                 Material material = null;
                 if (!string.IsNullOrEmpty(langFontSettings.fontMaterialPath))
@@ -86,14 +103,14 @@ namespace ProxFramework.Localization
                 return;
             }
 
-            CultureCode = GetSystemLanguageCultureCode(lang);
-            ChangeFont(CultureCode);
+            CurrentLanguage = lang;
+            ChangeFont(CurrentLanguage);
             OnLanguageChanged?.Invoke();
         }
 
-        private static void ChangeFont(string cultureCode)
+        private static void ChangeFont(SystemLanguage lang)
         {
-            if (_mapCultureCode2FontMappings.TryGetValue(cultureCode, out var fontMapping))
+            if (_mapCultureCode2FontMappings.TryGetValue(lang, out var fontMapping))
             {
                 CurrentFont = fontMapping.fontAsset;
                 CurrentFontMaterial = fontMapping.material;
@@ -109,17 +126,13 @@ namespace ProxFramework.Localization
                 return "";
             }
 
-            if (string.IsNullOrEmpty(CultureCode))
-            {
-                PLogger.Warning("LocalizationModule.GetLocalizeAsstPath: CultureCode is null or empty");
-                return "";
-            }
+            var code = GetSystemLanguageCultureCode(CurrentLanguage);
 
             foreach (var pathPrefix in SettingsUtil.GlobalSettings.l10NSettings.l10NAssetsPathPrefixes)
             {
                 if (path.StartsWith(pathPrefix))
                 {
-                    return path.Replace(pathPrefix, $"{pathPrefix}/localized/{CultureCode}");
+                    return path.Replace(pathPrefix, $"{pathPrefix}/i18n/{code}");
                 }
             }
 
@@ -134,7 +147,9 @@ namespace ProxFramework.Localization
                 return "";
             }
 
-            if (!_table.TryGetValue(CultureCode, key, out var value))
+            var code = GetSystemLanguageCultureCode(CurrentLanguage);
+
+            if (!_table.TryGetValue(code, key, out var value))
             {
                 PLogger.Warning($"LocalizationModule.GetLocalizeValue: Key {key} not found");
                 return "";

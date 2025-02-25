@@ -93,6 +93,7 @@ namespace ProxFramework.Editor
 
         private readonly Dictionary<string, Type> _nameTypesMap = new Dictionary<string, Type>()
         {
+            { "@Dropdown", typeof(TMP_Dropdown) },
             { "@Btn", typeof(Button) },
             { "@BtnEx", typeof(ButtonEx) },
             { "@Raw", typeof(RawImage) },

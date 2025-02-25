@@ -1,64 +1,34 @@
 ﻿using System;
 using ProxFramework.Asset;
 using UnityEditor;
-using UnityEngine;
 
 namespace ProxFramework.Localization
 {
     public abstract class LocalizedAsset<T> : LocalizedBehaviour where T : UnityEngine.Object
     {
-        [SerializeField] protected string assetPath;
-
-#if UNITY_EDITOR
-        protected virtual void OnValidate()
-        {
-            UpdateAssetPath();
-        }
-
-        protected virtual void UpdateAssetPath()
-        {
-            var asset = GetComponent<T>();
-            if (asset == null)
-            {
-                PLogger.Warning($"Localized {typeof(T)} is null. {gameObject.name}");
-                assetPath = string.Empty;
-                return;
-            }
-
-            assetPath = AssetDatabase.GetAssetPath(asset);
-            // 自动标记脏数据以保存修改
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
-#endif
-        protected override async void ApplyLocalization()
+        public override async void ApplyLocalization()
         {
             try
             {
-                if (string.IsNullOrEmpty(assetPath))
+                if (string.IsNullOrEmpty(l10NKey))
                 {
                     PLogger.Warning($"Asset path is empty, please set it first. {gameObject.name}");
                     return;
                 }
 
-                var localizedPath = LocalizationModule.GetLocalizeAsstPath(assetPath);
-                T asset = null;
-                if (AssetModule.initialized)
+                var localizedPath = LocalizationModule.GetLocalizeAsstPath(l10NKey);
+                // 如果本地化路径为空或者不合法，则使用原始路径
+                if (string.IsNullOrEmpty(localizedPath) || !AssetModule.CheckLocationValid(localizedPath))
                 {
-                    asset = await AssetModule.LoadAssetAsync<T>(localizedPath);
-                }
-                else
-                {
-                    asset = AssetDatabase.LoadAssetAtPath<T>(localizedPath);
+                    PLogger.Warning($"Localized asset is null. {gameObject.name}. asset path:{localizedPath}");
+                    localizedPath = l10NKey;
                 }
 
-                if (asset == null)
+                var asset = await AssetModule.LoadAssetAsync<T>(localizedPath);
+                if (asset != null)
                 {
-                    PLogger.Warning($"Localized asset is null. {gameObject.name}");
-                    return;
+                    ApplyAsset(asset);
                 }
-
-                ApplyAsset(asset);
             }
             catch (Exception e)
             {

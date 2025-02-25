@@ -1,4 +1,5 @@
-﻿using ProxFramework.Asset;
+﻿using Cysharp.Threading.Tasks;
+using ProxFramework.Asset;
 using ProxFramework.Event;
 using ProxFramework.Localization;
 using ProxFramework.Network;
@@ -16,7 +17,6 @@ namespace ProxFramework.Base
             StateMachineModule.Initialize();
             AssetModule.Initialize();
             NetworkModule.Initialize();
-            LocalizationModule.Initialize();
             UIModule.Initialize(transform.Find("UIRootCanvas").gameObject);
         }
 

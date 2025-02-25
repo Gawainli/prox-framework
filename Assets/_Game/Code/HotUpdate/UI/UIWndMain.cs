@@ -26,6 +26,20 @@ namespace Prox.GameName.UI
                     btnBack2Main.onClick.RemoveAllListeners();
                 });
             });
+
+            btnGoTestI18N.onClick.AddListener(() =>
+            {
+                objMainBtns.SetActive(false);
+                UIModule.OpenWindowAsync<UITestLocalization>("Assets/_Game/Art/UI/Prefabs/UITestLocalization.prefab")
+                    .Forget();
+                btnBack2Main.onClick.RemoveAllListeners();
+                btnBack2Main.onClick.AddListener(() =>
+                {
+                    objMainBtns.SetActive(true);
+                    UIModule.CloseWindow<UITestLocalization>();
+                    btnBack2Main.onClick.RemoveAllListeners();
+                });
+            });
         }
 
         public override void OnUpdate(float deltaTime)

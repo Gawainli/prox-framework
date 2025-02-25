@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,6 +40,7 @@ public class ShaderVariantCollectionManifest
 
             SortValue = $"{PassType}+{combineKeyword}";
         }
+
         public int CompareTo(ShaderVariantElement other)
         {
             return SortValue.CompareTo(other.SortValue);
@@ -73,6 +76,7 @@ public class ShaderVariantCollectionManifest
         {
             SortValue = AssetPath + "+" + ShaderName;
         }
+
         public int CompareTo(ShaderVariantInfo other)
         {
             return SortValue.CompareTo(other.SortValue);
@@ -112,6 +116,7 @@ public class ShaderVariantCollectionManifest
         info.ShaderVariantElements.Add(element);
         info.ShaderVariantCount++;
     }
+
     private ShaderVariantInfo GetOrCreateShaderVariantInfo(string assetPath, string shaderName)
     {
         var selectList = ShaderVariantInfos.Where(t => t.ShaderName == shaderName && t.AssetPath == assetPath).ToList();
@@ -150,7 +155,8 @@ public class ShaderVariantCollectionManifest
                 {
                     var shaderRef = shaderArray.FindPropertyRelative($"data[{i}].first");
                     var shaderVariantsArray = shaderArray.FindPropertyRelative($"data[{i}].second.variants");
-                    if (shaderRef != null && shaderRef.propertyType == SerializedPropertyType.ObjectReference && shaderVariantsArray != null && shaderVariantsArray.isArray)
+                    if (shaderRef != null && shaderRef.propertyType == SerializedPropertyType.ObjectReference &&
+                        shaderVariantsArray != null && shaderVariantsArray.isArray)
                     {
                         var shader = shaderRef.objectReferenceValue as Shader;
                         if (shader == null)
@@ -166,7 +172,8 @@ public class ShaderVariantCollectionManifest
                         {
                             var propKeywords = shaderVariantsArray.FindPropertyRelative($"Array.data[{j}].keywords");
                             var propPassType = shaderVariantsArray.FindPropertyRelative($"Array.data[{j}].passType");
-                            if (propKeywords != null && propPassType != null && propKeywords.propertyType == SerializedPropertyType.String)
+                            if (propKeywords != null && propPassType != null &&
+                                propKeywords.propertyType == SerializedPropertyType.String)
                             {
                                 string[] keywords = propKeywords.stringValue.Split(' ');
                                 PassType pathType = (PassType)propPassType.intValue;
@@ -188,3 +195,4 @@ public class ShaderVariantCollectionManifest
         return manifest;
     }
 }
+#endif

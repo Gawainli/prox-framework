@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
+
+using System.IO;
 using YooAsset.Editor;
 
 namespace ProxFramework.Editor
@@ -21,7 +23,7 @@ namespace ProxFramework.Editor
             return Path.GetFileName(data.AssetPath);
         }
     }
-    
+
     [DisplayName("定位地址: 从CollectPath开始包含子目录")]
     public class AddressBySubCollectPath : IAddressRule
     {
@@ -36,3 +38,4 @@ namespace ProxFramework.Editor
         }
     }
 }
+#endif

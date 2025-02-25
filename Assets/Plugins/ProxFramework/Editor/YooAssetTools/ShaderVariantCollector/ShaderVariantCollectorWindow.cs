@@ -1,10 +1,11 @@
-﻿#if UNITY_2019_4_OR_NEWER
+﻿#if UNITY_EDITOR
+
+#if UNITY_2019_4_OR_NEWER
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using YooAsset.Editor;
 
@@ -46,7 +47,8 @@ public class ShaderVariantCollectorWindow : EditorWindow
 
             // 文件输出目录
             _collectOutputField = root.Q<TextField>("CollectOutput");
-            _collectOutputField.SetValueWithoutNotify(ShaderVariantCollectorSetting.GeFileSavePath(_currentPackageName));
+            _collectOutputField.SetValueWithoutNotify(
+                ShaderVariantCollectorSetting.GeFileSavePath(_currentPackageName));
             _collectOutputField.RegisterValueChangedCallback(evt =>
             {
                 ShaderVariantCollectorSetting.SetFileSavePath(_currentPackageName, _collectOutputField.value);
@@ -60,10 +62,7 @@ public class ShaderVariantCollectorWindow : EditorWindow
                 _packageField = new PopupField<string>(_packageNames, defaultIndex);
                 _packageField.label = "Package";
                 _packageField.style.width = 350;
-                _packageField.RegisterValueChangedCallback(evt =>
-                {
-                    _currentPackageName = _packageField.value;
-                });
+                _packageField.RegisterValueChangedCallback(evt => { _currentPackageName = _packageField.value; });
                 packageContainer.Add(_packageField);
             }
             else
@@ -76,7 +75,8 @@ public class ShaderVariantCollectorWindow : EditorWindow
 
             // 容器值
             _processCapacitySlider = root.Q<SliderInt>("ProcessCapacity");
-            _processCapacitySlider.SetValueWithoutNotify(ShaderVariantCollectorSetting.GeProcessCapacity(_currentPackageName));
+            _processCapacitySlider.SetValueWithoutNotify(
+                ShaderVariantCollectorSetting.GeProcessCapacity(_currentPackageName));
 #if !UNITY_2020_3_OR_NEWER
             _processCapacitySlider.label = $"Capacity ({_processCapacitySlider.value})";
             _processCapacitySlider.RegisterValueChangedCallback(evt =>
@@ -103,6 +103,7 @@ public class ShaderVariantCollectorWindow : EditorWindow
             Debug.LogError(e.ToString());
         }
     }
+
     private void Update()
     {
         if (_currentShaderCountField != null)
@@ -135,8 +136,10 @@ public class ShaderVariantCollectorWindow : EditorWindow
                 return index;
             }
         }
+
         return 0;
     }
+
     private List<string> GetBuildPackageNames()
     {
         List<string> result = new List<string>();
@@ -144,7 +147,9 @@ public class ShaderVariantCollectorWindow : EditorWindow
         {
             result.Add(package.PackageName);
         }
+
         return result;
     }
 }
+#endif
 #endif

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 public class ShaderVariantCollectorSetting : ScriptableObject
@@ -10,6 +12,7 @@ public class ShaderVariantCollectorSetting : ScriptableObject
         string key = $"{Application.productName}_{packageName}_GeFileSavePath";
         return EditorPrefs.GetString(key, DefaultSavePath);
     }
+
     public static void SetFileSavePath(string packageName, string savePath)
     {
         string key = $"{Application.productName}_{packageName}_GeFileSavePath";
@@ -21,9 +24,11 @@ public class ShaderVariantCollectorSetting : ScriptableObject
         string key = $"{Application.productName}_{packageName}_GeProcessCapacity";
         return EditorPrefs.GetInt(key, 1000);
     }
+
     public static void SetProcessCapacity(string packageName, int capacity)
     {
         string key = $"{Application.productName}_{packageName}_GeProcessCapacity";
         EditorPrefs.SetInt(key, capacity);
     }
 }
+#endif
