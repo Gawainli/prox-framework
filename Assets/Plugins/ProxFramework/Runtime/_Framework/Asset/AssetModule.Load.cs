@@ -11,7 +11,7 @@ namespace ProxFramework.Asset
     public static partial class AssetModule
     {
         private static Dictionary<string, HandleBase> _mapLocationToHandle = new();
-        private static Dictionary<object, HandleBase> _mapObjectToHandle = new();
+        private static Dictionary<object, HandleBase> _mapObjectToHandleForRelease = new();
         private static Dictionary<GameObject, object> _mapInstanceObjectToAssetObject = new();
         private static Dictionary<string, SceneHandle> _mapSceneToHandle = new();
 
@@ -89,7 +89,7 @@ namespace ProxFramework.Asset
                 assetHandle.WaitForAsyncComplete();
             }
 
-            _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
+            _mapObjectToHandleForRelease.TryAdd(assetHandle.AssetObject, assetHandle);
             return assetHandle.AssetObject as T;
         }
 
@@ -104,7 +104,7 @@ namespace ProxFramework.Asset
 #endif
             var assetHandle = GetAssetHandle<AssetHandle>(location, true, typeof(T));
             await assetHandle.ToUniTask();
-            _mapObjectToHandle.TryAdd(assetHandle.AssetObject, assetHandle);
+            _mapObjectToHandleForRelease.TryAdd(assetHandle.AssetObject, assetHandle);
             return assetHandle.AssetObject as T;
         }
 
@@ -226,16 +226,12 @@ namespace ProxFramework.Asset
                 return new UnityEngine.SceneManagement.Scene();
             }
 
-            var sceneName = Path.GetFileNameWithoutExtension(location);
-            if (_mapSceneToHandle.ContainsKey(sceneName))
-            {
-                PLogger.Warning($"Scene {sceneName} already loaded.");
-                return new UnityEngine.SceneManagement.Scene();
-            }
-
             var handle = package.LoadSceneAsync(location, loadSceneMode);
             await handle.ToUniTask();
-            _mapSceneToHandle.Add(sceneName, handle);
+            if (!_mapSceneToHandle.TryAdd(handle.SceneObject.name, handle))
+            {
+                handle.Release();
+            }
             return handle.SceneObject;
         }
 
@@ -249,6 +245,7 @@ namespace ProxFramework.Asset
             if (_mapSceneToHandle.TryGetValue(sceneName, out var handle))
             {
                 await handle.UnloadAsync();
+                handle.Release();
                 _mapSceneToHandle.Remove(sceneName);
             }
         }
@@ -274,11 +271,24 @@ namespace ProxFramework.Asset
                 return;
             }
 
-            if (_mapObjectToHandle.Remove(assetObject, out var handle))
+            if (_mapObjectToHandleForRelease.Remove(assetObject, out var handle))
             {
                 _mapLocationToHandle.Remove(handle.GetAssetInfo().AssetPath);
                 handle.Release();
             }
+        }
+        
+        public static void ReleaseAllHandles()
+        {
+            foreach (var handle in _mapLocationToHandle.Values)
+            {
+                handle.Release();
+            }
+
+            _mapLocationToHandle.Clear();
+            _mapObjectToHandleForRelease.Clear();
+            _mapInstanceObjectToAssetObject.Clear();
+            _mapSceneToHandle.Clear();
         }
 
         public static async UniTask UnloadUnusedAssets()
