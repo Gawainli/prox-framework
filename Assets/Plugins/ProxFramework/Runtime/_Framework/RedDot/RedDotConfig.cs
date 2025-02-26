@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace ProxFramework.RedDot
@@ -8,23 +7,6 @@ namespace ProxFramework.RedDot
     public class RedDotConfig : ScriptableObject
     {
         public List<RedDotData> nodeConfigs = new();
-
-#if UNITY_EDITOR
-        [CustomEditor(typeof(RedDotConfig))]
-        public class RedDotConfigEditor : Editor
-        {
-            public override void OnInspectorGUI()
-            {
-                base.OnInspectorGUI();
-
-                if (GUILayout.Button("Check Nodes"))
-                {
-                    ((RedDotConfig)target).CheckForUselessNodes();
-                    ((RedDotConfig)target).CheckForCycles();
-                }
-            }
-        }
-#endif
 
         public void CheckForUselessNodes()
         {
