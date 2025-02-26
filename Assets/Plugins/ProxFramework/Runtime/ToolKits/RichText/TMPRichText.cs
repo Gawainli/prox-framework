@@ -31,17 +31,16 @@ namespace ProxFramework.Utils
 
         public void SetValue(string key, string value)
         {
-            foreach (var item in placeholders)
+            var placeholder = placeholders.Find(p => p.key == key);
+            if (placeholder != null)
             {
-                if (item.key == key)
-                {
-                    item.value = value;
-                    ForceUpdateText();
-                    return;
-                }
+                placeholder.value = value;
+                ForceUpdateText();
+                return;
             }
 
-            PLogger.Warning($"TMPRichText: Placeholder with key [{key}] not found");
+            placeholders.Add(new Placeholder { key = key, value = value });
+            ForceUpdateText();
         }
 
         private void ForceUpdateText()
@@ -65,7 +64,7 @@ namespace ProxFramework.Utils
         {
             _sb?.Clear();
             _sb = null;
-            _tmpText = null; 
+            _tmpText = null;
         }
 
         public void SetOriginalText(string originalText, bool forceUpdate)
