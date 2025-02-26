@@ -17,13 +17,60 @@ namespace ProxFramework.RedDot
             {
                 base.OnInspectorGUI();
 
-                if (GUILayout.Button("Check for Cycles"))
+                if (GUILayout.Button("Check Nodes"))
                 {
+                    ((RedDotConfig)target).CheckForUselessNodes();
                     ((RedDotConfig)target).CheckForCycles();
                 }
             }
         }
 #endif
+
+        public void CheckForUselessNodes()
+        {
+            var adjacencyList = new Dictionary<string, List<string>>();
+
+            // 构建邻接表（source -> target）
+            foreach (var config in nodeConfigs)
+            {
+                foreach (var sourceId in config.sourceIds)
+                {
+                    if (!adjacencyList.ContainsKey(sourceId))
+                    {
+                        adjacencyList[sourceId] = new List<string>();
+                    }
+
+                    adjacencyList[sourceId].Add(config.nodeId);
+                }
+            }
+
+            var visited = new HashSet<string>();
+            var recursionStack = new HashSet<string>();
+
+            foreach (var node in adjacencyList.Keys)
+            {
+                DFS(node, adjacencyList, visited, recursionStack);
+            }
+
+            var count = 0;
+            foreach (var config in nodeConfigs)
+            {
+                if (!visited.Contains(config.nodeId))
+                {
+                    PLogger.Warning($"Node [{config.nodeId}] is not reachable from any other node!");
+                    count++;
+                }
+            }
+
+            if (count == 0)
+            {
+                PLogger.Info("No useless nodes detected.");
+            }
+            else
+            {
+                PLogger.Warning($"Found {count} useless nodes.");
+            }
+        }
 
         public void CheckForCycles()
         {
@@ -50,12 +97,12 @@ namespace ProxFramework.RedDot
             {
                 if (DFS(node, adjacencyList, visited, recursionStack))
                 {
-                    Debug.LogError("Cycle detected in red dot configuration!");
+                    PLogger.Error("Cycle detected in red dot configuration!");
                     return;
                 }
             }
 
-            Debug.Log("No cycles detected.");
+            PLogger.Info("No cycles detected.");
         }
 
         private static bool DFS(string current,
@@ -74,6 +121,7 @@ namespace ProxFramework.RedDot
                 {
                     if (DFS(neighbor, graph, visited, stack))
                     {
+                        PLogger.Error($"Find Cycle: [{current}] to [{neighbor}]");
                         return true;
                     }
                 }
