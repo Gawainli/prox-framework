@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace ProxFramework.Localization
 {
@@ -7,6 +8,8 @@ namespace ProxFramework.Localization
     {
         private TMPro.TMP_Text _text;
         private float _defaultFontSize = -1.0f;
+
+        public event Action OnLocaledTextApplied;
 
         protected override void Awake()
         {
@@ -29,6 +32,7 @@ namespace ProxFramework.Localization
 
             ApplyFont();
             _text.text = LocalizationModule.GetLocalizeValue(l10NKey);
+            OnLocaledTextApplied?.Invoke();
         }
 
         private void ApplyFont()
