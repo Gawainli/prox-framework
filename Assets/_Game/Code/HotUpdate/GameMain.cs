@@ -13,8 +13,8 @@ namespace GameName.Core
         {
             try
             {
-                await DataSystem.Initialize();
-                PLogger.Info($"DataSystem initialized. Item table count:{DataSystem.Tables.TbItem.DataList.Count}");
+                await TableManager.Initialize();
+                PLogger.Info($"DataSystem initialized. Item table count:{TableManager.Tables.TbItem.DataList.Count}");
                 
                 await LocalizationModule.Initialize(new I18NTable());
                 PLogger.Info("start game. change scene to Main");

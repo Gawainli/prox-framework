@@ -35,7 +35,7 @@ namespace ProxFramework.Editor.L10N
                 LocalizationModule.Shutdown();
             }
 
-            await DataSystem.Initialize();
+            await TableManager.Initialize();
             await LocalizationModule.Initialize(new cfg.I18NTable());
         }
 

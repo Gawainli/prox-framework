@@ -56,16 +56,12 @@ namespace ProxFramework.Utils
 
         public void SetValue(string key, string value)
         {
-            var exists = false;
-            foreach (var p in placeholders)
+            var placeholder = placeholders.Find(p => p.key == key);
+            if (placeholder != null)
             {
-                if (p.key != key) continue;
-                p.value = value;
-                exists = true;
-                break;
+                placeholder.value = value;
             }
-
-            if (!exists)
+            else
             {
                 placeholders.Add(new Placeholder { key = key, value = value });
             }
@@ -93,13 +89,12 @@ namespace ProxFramework.Utils
         private void OnDestroy()
         {
             _sb?.Clear();
-            _sb = null;
             _tmpText = null;
         }
 
         public void SetOriginalText(string originalText, bool forceUpdate)
         {
-            _tmpText = GetComponent<TMP_Text>();
+            _tmpText ??= GetComponent<TMP_Text>();
             _tmpText.text = originalText;
             _originalText = originalText;
             _cachedText = string.Empty;

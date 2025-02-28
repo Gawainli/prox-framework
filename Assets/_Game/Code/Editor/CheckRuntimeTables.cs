@@ -14,8 +14,8 @@ namespace GameName.Editor
         {
             try
             {
-                await DataSystem.Initialize();
-                PLogger.Info($"{DataSystem.Tables.TbTextL10N.DataList.Count}");
+                await TableManager.Initialize();
+                PLogger.Info($"{TableManager.Tables.TbTextL10N.DataList.Count}");
                 PLogger.Info("CheckRuntimeTables.CheckTables: Tables checked");
             }
             catch (Exception e)

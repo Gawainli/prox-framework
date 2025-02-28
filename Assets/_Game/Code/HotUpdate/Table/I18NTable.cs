@@ -17,7 +17,7 @@ namespace cfg
 
         public bool TryGetValue(string languageCode, string key, out string value)
         {
-            var findKey = DataSystem.Tables.TbTextL10N.DataMap.TryGetValue(key, out var textL10N);
+            var findKey = TableManager.Tables.TbTextL10N.DataMap.TryGetValue(key, out var textL10N);
             if (findKey)
             {
                 switch (languageCode)

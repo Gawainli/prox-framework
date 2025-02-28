@@ -58,7 +58,8 @@ namespace ProxFramework.Asset
 
             if (typeof(T) == typeof(AssetHandle))
             {
-                var assetHandle = isAsync ? package.LoadAssetAsync(location, type) : package.LoadAssetSync(location, type);
+                var assetHandle =
+                    isAsync ? package.LoadAssetAsync(location, type) : package.LoadAssetSync(location, type);
                 _mapLocationToHandle.Add(location, assetHandle);
                 return assetHandle as T;
             }
@@ -232,6 +233,7 @@ namespace ProxFramework.Asset
             {
                 handle.Release();
             }
+
             return handle.SceneObject;
         }
 
@@ -277,7 +279,7 @@ namespace ProxFramework.Asset
                 handle.Release();
             }
         }
-        
+
         public static void ReleaseAllHandles()
         {
             foreach (var handle in _mapLocationToHandle.Values)
