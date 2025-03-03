@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using ProxFramework.Asset;
+﻿using ProxFramework.Asset;
 using ProxFramework.Event;
 using ProxFramework.Localization;
 using ProxFramework.Network;

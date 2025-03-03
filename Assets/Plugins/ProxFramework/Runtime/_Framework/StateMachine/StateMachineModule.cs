@@ -47,7 +47,10 @@ namespace ProxFramework.StateMachine
             {
                 foreach (var machine in machines)
                 {
-                    machine.Tick(deltaTime);
+                    if (!machine.ManuallyTick)
+                    {
+                        machine.Tick(deltaTime);
+                    }
                 }
             }
         }

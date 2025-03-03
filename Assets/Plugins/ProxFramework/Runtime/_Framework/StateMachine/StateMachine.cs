@@ -8,6 +8,7 @@ namespace ProxFramework.StateMachine
         public bool isRunning = false;
         public string name;
         public object Owner => _owner;
+        public bool ManuallyTick { get; private set; }
 
         private object _owner;
         private readonly Dictionary<Type, State> _states;
@@ -16,22 +17,23 @@ namespace ProxFramework.StateMachine
 
         public Blackboard.Blackboard Blackboard { get; }
 
-        private StateMachine(object owner, string name)
+        private StateMachine(object owner, bool manuallyTick, string name)
         {
             _owner = owner;
             this.name = name;
             _states = new Dictionary<Type, State>();
             Blackboard = new Blackboard.Blackboard($"{name}.Blackboard");
+            ManuallyTick = manuallyTick;
         }
 
-        public static StateMachine Create(object owner, string name = "")
+        public static StateMachine Create(object owner, bool manuallyTick = false, string name = "")
         {
             if (string.IsNullOrEmpty(name))
             {
                 name = owner.GetType().Name + ".FSM";
             }
 
-            var fsm = new StateMachine(owner, name);
+            var fsm = new StateMachine(owner, manuallyTick, name);
             StateMachineModule.RegisterStateMachine(fsm);
             return fsm;
         }
