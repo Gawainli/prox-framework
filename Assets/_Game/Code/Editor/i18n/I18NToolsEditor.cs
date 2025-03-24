@@ -35,8 +35,7 @@ namespace ProxFramework.Editor.L10N
                 LocalizationModule.Shutdown();
             }
 
-            await TableManager.Initialize();
-            await LocalizationModule.Initialize(new cfg.I18NTable());
+            await GameEntrance.InitSys();
         }
 
         void OnGUI()

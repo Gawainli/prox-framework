@@ -1,7 +1,9 @@
 ﻿#if UNITY_EDITOR
 
 using System;
+using GameName.Base.PlaySys;
 using GameName.Core;
+using GameName.DataTable;
 using ProxFramework;
 using UnityEditor;
 
@@ -14,8 +16,8 @@ namespace GameName.Editor
         {
             try
             {
-                await TableManager.Initialize();
-                PLogger.Info($"{TableManager.Tables.TbTextL10N.DataList.Count}");
+                await GameEntrance.InitSys();
+                PLogger.Info($"{GameSysCore.GetSystem<DataTableSystem>().Tables.TbTextL10N.DataList.Count}");
                 PLogger.Info("CheckRuntimeTables.CheckTables: Tables checked");
             }
             catch (Exception e)

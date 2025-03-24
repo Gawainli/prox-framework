@@ -36,6 +36,11 @@ namespace Prox.GameName.Runtime
             _bootStateMachine.AddState<StateStartGame>();
         }
 
+        private void Update()
+        {
+            _bootStateMachine.Tick(Time.deltaTime);
+        }
+
         //防止代码被裁剪
         //如果在主工程无引用，link.xml的防裁剪也无效。
         private void DisStripCode()

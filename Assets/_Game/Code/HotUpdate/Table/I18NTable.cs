@@ -1,4 +1,6 @@
-﻿using GameName.Core;
+﻿using GameName.Base.PlaySys;
+using GameName.Core;
+using GameName.DataTable;
 using ProxFramework.Localization;
 
 namespace cfg
@@ -17,7 +19,7 @@ namespace cfg
 
         public bool TryGetValue(string languageCode, string key, out string value)
         {
-            var findKey = TableManager.Tables.TbTextL10N.DataMap.TryGetValue(key, out var textL10N);
+            var findKey = GameSysCore.GetSystem<DataTableSystem>().Tables.TbTextL10N.DataMap.TryGetValue(key, out var textL10N);
             if (findKey)
             {
                 switch (languageCode)

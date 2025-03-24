@@ -16,10 +16,11 @@ namespace GameName.Core
             try
             {
                 await InitSys();
+                GameSysCore.GetSystem<GamePlaySys>().StartGame();
             }
             catch (Exception e)
             {
-                PLogger.Error(e.ToString());
+                PLogger.Exception($"Game Exception: {e.Message}", e);
             }
         }
 
