@@ -16,7 +16,8 @@ namespace GameName.Editor
         {
             try
             {
-                await GameEntrance.InitSys();
+                GameEntrance.RegisterAllSystems();
+                await GameEntrance.LoadAllAsync();
                 PLogger.Info($"{GameSysCore.GetSystem<DataTableSystem>().Tables.TbTextL10N.DataList.Count}");
                 PLogger.Info("CheckRuntimeTables.CheckTables: Tables checked");
             }
