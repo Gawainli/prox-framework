@@ -35,7 +35,8 @@ namespace ProxFramework.Editor.L10N
                 LocalizationModule.Shutdown();
             }
 
-            await GameEntrance.InitSys();
+            GameEntrance.RegisterAllSystems();
+            await GameEntrance.LoadAllAsync();
         }
 
         void OnGUI()
