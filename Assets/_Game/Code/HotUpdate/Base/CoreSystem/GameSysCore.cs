@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using GameName.DataTable;
 using UnityEngine;
@@ -26,15 +27,20 @@ namespace GameName.Base.PlaySys
             Object.DontDestroyOnLoad(_driver);
         }
 
-        public static async UniTask RegisterAllSystems()
-        {
-            var dts = new DataTableSystem();
-            await dts.LoadAllTables();
-            RegisterSystem(dts);
-        }
-
         public static bool RegisterSystem(AbsGameSys system)
         {
+            if (_mapNameToSystem.TryAdd(system.GetType().Name, system))
+            {
+                system.Init();
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool RegisterSystem<T>() where T : AbsGameSys, new()
+        {
+            var system = new T();
             if (_mapNameToSystem.TryAdd(system.GetType().Name, system))
             {
                 system.Init();
@@ -132,8 +138,43 @@ namespace GameName.Base.PlaySys
             }
 
             _mapNameToSystem.Clear();
+            StopAllCoroutines();
             Object.Destroy(_driver);
             _initialized = false;
         }
+
+        #region Coroutine
+
+        public static Coroutine StartCoroutine(IEnumerator routine)
+        {
+            return _behaviour.StartCoroutine(routine);
+        }
+
+        public static Coroutine StartCoroutine(string methodName, object value = null)
+        {
+            return _behaviour.StartCoroutine(methodName, value);
+        }
+
+        public static void StopCoroutine(IEnumerator routine)
+        {
+            _behaviour.StopCoroutine(routine);
+        }
+
+        public static void StopCoroutine(Coroutine routine)
+        {
+            _behaviour.StopCoroutine(routine);
+        }
+
+        public static void StopCoroutine(string methodName)
+        {
+            _behaviour.StopCoroutine(methodName);
+        }
+
+        public static void StopAllCoroutines()
+        {
+            _behaviour.StopAllCoroutines();
+        }
+
+        #endregion
     }
 }

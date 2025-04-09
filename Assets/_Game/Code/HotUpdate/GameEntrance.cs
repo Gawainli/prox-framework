@@ -1,6 +1,7 @@
 ﻿using System;
 using cfg;
 using Cysharp.Threading.Tasks;
+using GameName.Base;
 using GameName.Base.PlaySys;
 using GameName.DataTable;
 using GameName.GamePlay;
@@ -15,8 +16,11 @@ namespace GameName.Core
         {
             try
             {
-                await InitSys();
-                GameSysCore.GetSystem<GamePlaySys>().StartGame();
+                //Initialize i18n
+                await LocalizationModule.Initialize(new I18NTable());
+                RegisterAllSystems();
+                await LoadAllAsync();
+                SystemHelper.StateSystem.ChangeState<StateMain>();
             }
             catch (Exception e)
             {
@@ -24,16 +28,17 @@ namespace GameName.Core
             }
         }
 
-        public static async UniTask InitSys()
+        public static void RegisterAllSystems()
         {
-            //Initialize i18n
-            await LocalizationModule.Initialize(new I18NTable());
-
-            //Initialize GameSysCore
             GameSysCore.Initialize();
-            GameSysCore.RegisterSystem(new DataTableSystem());
+            GameSysCore.RegisterSystem<DataTableSystem>();
+            GameSysCore.RegisterSystem<GameStateSystem>();
+            GameSysCore.RegisterSystem<GameSingletonSystem>();
+        }
+
+        public static async UniTask LoadAllAsync()
+        {
             await GameSysCore.GetSystem<DataTableSystem>().LoadAllTables();
-            GameSysCore.RegisterSystem(new GamePlaySys());
         }
     }
 }
