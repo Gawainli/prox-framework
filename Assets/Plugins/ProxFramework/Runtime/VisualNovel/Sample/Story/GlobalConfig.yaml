@@ -1,0 +1,30 @@
+﻿templates:
+  base_character_entry:
+    - type: character
+      effect: fade_in
+      duration: 1.0
+  base_transition:
+    - type: screen_effect
+      name: "{effect}"
+      duration: "{duration|1.0}"
+    - wait: true
+  npc_dialog:
+    - type: character_entry
+      id: "{character}"
+      position: "{position}"
+      animation: "enter_{emotion}"
+    - type: dialogue
+      speaker: "{character}"
+      text: "{text}"
+      emotion: "{emotion}"
+      duration: 4.0
+variables:
+  player:
+    name: "Ash"
+    level: 1
+  story_flags:
+    met_old_man: false
+    found_sword: false
+positions:
+  left: { x: -400, y: 0 }
+  right: { x: 400, y: 0 }

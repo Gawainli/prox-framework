@@ -1,0 +1,8 @@
+﻿chapters:
+  - path: Story/Chapters/Prologue
+    entry: true
+    requires: []
+  - path: Story/Chapters/Chapter1/Scene1
+    requires: "$story_flags.met_old_man == true"
+  - path: Story/Chapters/Chapter1/Scene2
+    requires: "$story_flags.found_sword == true"
