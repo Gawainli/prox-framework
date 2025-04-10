@@ -1,0 +1,170 @@
+﻿# 视觉小说完整配置示例
+# ==== 全局定义 ====
+meta:
+  title: "黄昏协奏曲"
+  resolution: [1920, 1080]
+  font: "fonts/SourceHanSans.ttf"
+
+# 变量声明系统
+variables:
+  - name: trust_level
+    type: number
+    default: 0  # 初始信任值
+  - name: knowledge
+    type: array
+    default: ["none"]  # 知识收集状态
+
+# ==== 资源定义 ====
+assets:
+  backgrounds:
+    clock_tower: "bg/clock_tower.jpg"
+    archive_room: "bg/archive.jpg"
+  
+  characters:
+    # 新增动态表情系统
+    alice:
+      base: "char/alice/base.png"  # 底线稿
+      expressions:
+        - type: "skeptical"  # 怀疑
+          image: "char/alice/expr1.png"
+          conditions: "trust_level <= 2"
+
+        - type: "neutral"    # 中立（默认）
+          image: "char/alice/expr2.png"
+          conditions: "trust_level > 2 && trust_level <5"
+
+        - type: "trusting"   # 信任
+          image: "char/alice/expr3.png"
+          conditions: "trust_level >=5"
+          animation: "char/alice/expr3_anim.frames"  # 动画帧配置
+
+    old_man:
+      # 特殊参考文献管理员
+      scholar: "char/man/scholar.png"
+  
+  audio:
+    bgm_main: "bgm/dingy_library.ogg"
+    sfx_page: "sfx/paper_flip.wav"
+
+# ==== 场景流程 ====
+scenes:
+  # === 序幕场景 ===
+  - id: prologue
+    nodes:
+      - type: parallel
+        comment: "混合演出开场"
+        wait: all/any
+        actions:
+          - type: background
+            image: clock_tower
+            transition: radial_blur  # 放射模糊入场
+
+          - type: set_bgm
+            target: bgm_main
+            fade_in: 4.0
+
+          - type: set_var  # 初始化变量
+            variables:
+              trust_level: 0
+              knowledge: []
+
+      # 动态表情测试
+      - type: dialogue!
+        character: alice
+        expression: "auto"  # 自动匹配 trust_level=0 -> skeptical 表情
+        text: "这栋钟楼的气氛...让人莫名不安。"
+        effects:
+          - ink_spread: 2  # 水墨扩散特效
+
+      # === 分支点 ===
+      - type: choice
+        prompt: "如何回应神秘声音？"
+        options:
+          # 条件选项
+          - text: "（展现戒备）"
+            effects:
+              - set_var: {trust_level: "trust_level-1"}
+            goto: cautious_path
+
+          - text: "（表示好奇）"
+            if: "knowledge includes 'old_language'"  # 前置知识检测
+            effects:
+              - play_sfx: sfx_page
+              - set_var: {trust_level: "trust_level+2"}
+            goto: scholar_scene
+
+          - text: "保持沉默"
+            goto: neutral_path
+
+  # === 学者场景 ===
+  - id: scholar_scene
+    nodes:
+      - type: background
+        image: archive_room
+        transition: page_flip  # 翻页过渡效果
+
+      # 根据信任值动态改变对话
+      - type: condition
+        checks:
+          - condition: "trust_level >= 5"  # 高信任路线
+            actions:
+              - type: show_character
+                character: old_man
+                expression: scholar
+              - type: dialogue
+                text: "您追寻的答案在第二塔层的星象仪中..."
+                effects:
+                  - set_var: {knowledge: "+=['star_chart']"}
+
+          - condition: "trust_level >=3"  # 中信任路线
+            actions:
+              - type: dialogue
+                text: "东侧藏书室可能有您需要的东西..."
+                expression: "neutral"
+
+          - default:  # 低信任路线
+            actions:
+              - type: dialogue
+                text: "阅览时间已结束，请回吧。"
+                effects:
+                  - screen_shake: [5, 1]  # 愤怒特效
+
+      # 增量信任测试
+      - type: parallel
+        wait_mode: any
+        actions:
+          - type: set_var
+            target: trust_level
+            value: "trust_level + (knowledge count >=2 ? 3 : 1)"
+            side_effect: refresh_expressions  # 强制刷新表情
+
+          - type: dialogue
+            character: alice
+            expression: "auto"  # 更新后的信任值匹配新表情
+            text: "看来我们的合作有了新进展？"
+
+# ==== 注释系统 ====
+#核心功能演示：
+#1. 动态表情系统：
+#   - Alice的脸部表情根据trust_level自动适配
+#   - 到达trust_level 5时触发特殊动画
+#   - 使用"!"强制验证表情可用性
+#
+#2. 多维变量交互：
+#   - 数值型变量 trust_level 控制核心剧情
+#   - 知识收集进度（数组）影响对话选项
+#
+#3. 智能条件判断：
+#   - 选项可见性条件 (if:)
+#   - 多条件路线选择 (condition checks)
+#   - 变量表达式运算 ("trust_level + (condition...)")
+#  
+#  4. 演出整合：
+#- 转场特效与BGM的并行控制
+#- 变量改变触发画面元素刷新
+#- 选项选择伴随音效反馈
+#  
+#  技术特性：
+#- 类型安全：变量操作自动校验类型（数值/数组）
+#- 实时预览：编辑器内可拖拽变量值测试不同路线
+#- 热重载：修改表情配置后无需重启即可看到变化
