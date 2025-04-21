@@ -13,6 +13,17 @@ variables:
   - name: knowledge
     type: array
     default: ["none"]  # 知识收集状态
+    
+dialogue:
+  # 对话框样式
+  default:
+    font: "fonts/SourceHanSans.ttf"
+    size: 24
+    color: "#FFFFFF"
+    position: [ 0.5, 0.1 ]  # 屏幕中心偏上
+    background: "ui/dialogue_bg.png"
+    border: "ui/dialogue_border.png"
+    padding: [ 10, 10, 10, 10 ]  # 上右下左
 
 # ==== 资源定义 ====
 assets:
@@ -23,7 +34,7 @@ assets:
   characters:
     # 新增动态表情系统
     alice:
-      base: "char/alice/base.png"  # 底线稿
+      base: "char/alice/base.png
       expressions:
         - type: "skeptical"  # 怀疑
           image: "char/alice/expr1.png"
@@ -45,6 +56,7 @@ assets:
   audio:
     bgm_main: "bgm/dingy_library.ogg"
     sfx_page: "sfx/paper_flip.wav"
+
 
 # ==== 场景流程 ====
 scenes:
@@ -168,3 +180,15 @@ scenes:
 #- 类型安全：变量操作自动校验类型（数值/数组）
 #- 实时预览：编辑器内可拖拽变量值测试不同路线
 #- 热重载：修改表情配置后无需重启即可看到变化
+
+
+# ==== 规则说明 ====
+# 自动表情选择逻辑：
+# 1. 按配置顺序检查conditions条件
+# 2. 使用第一个满足条件的表情
+# 3. 找不到时使用标记为default或无条件的表情
+# 4. 若仍无可用表情，使用base立绘
+
+# 验证机制：
+# - 带有"!"的节点会预检查表情是否满足显示条件
+# - 运行前验证器会检测所有强制(!)节点是否存在可达条件路径
