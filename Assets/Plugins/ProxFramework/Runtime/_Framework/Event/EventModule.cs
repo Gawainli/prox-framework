@@ -15,6 +15,9 @@ namespace ProxFramework.Event
 
         private static EventQueue _eventQueue;
         private static bool _initialized;
+        
+        //鉴于所有event已经使用unitask异步处理，这个值暂现在没什么用。先保留
+        public static int maxEventProcessingPerTick = 100;
 
         public static void Subscribe<T>(Action<T> handler) where T : IEvent
         {
@@ -27,9 +30,32 @@ namespace ProxFramework.Event
             InternalSubscribe(wrapper);
         }
 
+        public static void SubscribeOnce<T>(Action<T> handler) where T : IEvent
+        {
+            var wrapper = new Func<T, UniTask>(e =>
+            {
+                handler(e);
+                Unsubscribe(handler);
+                return UniTask.CompletedTask;
+            });
+
+            InternalSubscribe(wrapper);
+        }
+
         public static void Subscribe<T>(Func<T, UniTask> handler) where T : IEvent
         {
             InternalSubscribe(handler);
+        }
+        
+        public static void SubscribeOnce<T>(Func<T, UniTask> handler) where T : IEvent
+        {
+            var wrapper = new Func<T, UniTask>(async e =>
+            {
+                await handler(e);
+                Unsubscribe(handler);
+            });
+
+            InternalSubscribe(wrapper);
         }
 
         public static void Unsubscribe<T>(Action<T> handler) where T : IEvent
@@ -149,7 +175,7 @@ namespace ProxFramework.Event
                 PLogger.Info("EventModule not initialized");
                 return;
             }
-            
+
             var status = new StringBuilder()
                 .AppendLine($"Pending events: {_eventQueue.events.Count}")
                 .AppendLine($"Registered handlers:");
